@@ -1,0 +1,120 @@
+//BOJ17472 다리만들기2
+
+//문제
+//
+
+//해설
+//https://yabmoons.tistory.com/292
+//https://github.com/muny018/Algorithm/blob/master/BOJ_17472_%EB%8B%A4%EB%A6%AC%EB%A7%8C%EB%93%A4%EA%B8%B02.cpp
+
+#define _CRT_SECURE_NO_WARNINGS
+#define INF 10000;
+
+#include <iostream>
+#include <queue>
+#include <vector>
+using namespace std;
+
+int nMap[11][11] = { 0 };
+bool bLabelVisited[11][11] = { 0 };
+int N, M, nIslandNum;
+int nDist[7][7] = { 0 }; 
+int nAnswer = 99999999;
+int dx[] = { -1,0,1,0 };
+int dy[] = { 0,-1,0,1 };
+vector <pair <int, int >> nVecInput;
+vector < pair <int, int>> Label[7];
+
+void FindBridge()
+{
+
+
+}
+
+void BFS(int nRow, int nCol, int nCount)
+{
+	int nCurRow, nCurCol, nNextRow, nNextCol;
+	bLabelVisited[nRow][nCol] = true;
+	queue <pair <int, int>> Que;
+	Que.push(make_pair(nRow, nCol));
+
+	while (!Que.empty())
+	{
+		nCurRow = Que.front().first;
+		nCurCol = Que.front().second;
+		Que.pop();
+
+		for (int idx = 0; idx < 4; idx++)
+		{
+			nNextRow = nCurRow + dy[idx];
+			nNextCol = nCurCol + dx[idx];
+
+			if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= M) continue;
+			if (bLabelVisited[nNextRow][nNextCol]) continue;
+			if (nMap[nNextRow][nNextCol] == 0) continue;
+
+			bLabelVisited[nNextRow][nNextCol] = true;
+			Que.push(make_pair(nNextRow, nNextCol));
+			Label[nCount].push_back(make_pair(nNextRow, nNextCol));
+		}
+	}
+
+}
+
+void MakeLabel()
+{
+	int nVecSize = nVecInput.size();
+	int nCount = 1;
+	for (int i = 0; i < nVecSize; i++)
+	{
+		int nRow = nVecInput[0].first;
+		int nCol = nVecInput[0].second;
+
+		if (bLabelVisited[nRow][nCol] == false)
+		{
+			BFS(nRow, nCol, nCount);
+			nCount++;
+		}
+	}
+
+	nIslandNum = nCount;
+	
+}
+
+void Solve()
+{
+	MakeLabel();
+	FindBridge();
+	DistDFS(0, 0, 0);
+
+	//최소값 리턴하는 부분
+	
+}
+
+int main()
+{
+	freopen("input.txt", "r", stdin);
+	cin >> N, M;
+
+	for (int i = 1; i <=7; i++)
+	{
+		for (int j = 1; j <= 7; j++)
+		{
+			nDist[i][j] = INF;
+		}
+	}
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			cin >> nMap[i][j];
+			if (nMap[i][j]) nVecInput.push_back(make_pair(i, j));
+		}
+	}
+
+
+	Solve();
+
+	return 0;
+}
