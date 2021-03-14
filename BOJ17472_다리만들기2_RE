@@ -1,14 +1,15 @@
 //BOJ17472 다리만들기2
 
 //문제
-//
+//https://www.acmicpc.net/problem/17472
 
 //해설
 //https://yabmoons.tistory.com/292
 //https://github.com/muny018/Algorithm/blob/master/BOJ_17472_%EB%8B%A4%EB%A6%AC%EB%A7%8C%EB%93%A4%EA%B8%B02.cpp
 
+
 #define _CRT_SECURE_NO_WARNINGS
-#define INF 10000;
+#define INF 10000
 
 #include <iostream>
 #include <queue>
@@ -22,13 +23,70 @@ int nDist[7][7] = { 0 };
 int nAnswer = 99999999;
 int dx[] = { -1,0,1,0 };
 int dy[] = { 0,-1,0,1 };
-vector <pair <int, int >> nVecInput;
+vector <pair <int, int>> nVecInput;
 vector < pair <int, int>> Label[7];
+vector <pair<pair<int, int>, int>> BridgeInfo;
+bool Select[7 * 7] = { false };
+
+void DFS(int nStart, int nEnd, int nDir, int B_Size, int nCurRow, int nCurCol)
+{
+
+	int nNextRow = nCurRow + dy[nDir];
+	int nNextCol = nCurCol + dx[nDir];
+
+	if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= M) return;
+
+	if (nMap[nNextRow][nNextCol] == 0)
+	{
+		DFS(nStart, nEnd, nDir, B_Size + 1 , nNextRow, nNextCol);
+	}
+	
+	else if (nMap[nNextRow][nNextCol] == nEnd && B_Size>=2)
+	{
+		if (nDist[nStart][nEnd] > B_Size)
+		{
+			nDist[nStart][nEnd] = B_Size;
+			nDist[nEnd][nStart] = B_Size;
+		}
+		return;
+	}
+}
+
+void MakeBridge(int nStart, int nEnd)
+{
+	int nCurRow, nCurCol, nNextRow, nNextCol;
+	int nVecSize = Label[nStart].size();
+
+	for (int i = 0; i < nVecSize; i++)
+	{
+		nCurRow = Label[nStart][i].first;
+		nCurCol = Label[nStart][i].second;
+
+		for (int idx = 0; idx < 4; idx++)
+		{
+			nNextRow = nCurRow + dy[idx];
+			nNextCol = nCurCol + dx[idx];
+
+			if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= M) continue;
+			if (nMap[nNextRow][nNextCol] == 0)
+			{
+				DFS(nStart, nEnd, idx,1 , nNextRow, nNextCol);
+			}
+		}
+	}
+}
 
 void FindBridge()
 {
-
-
+	for (int i = 1; i < nIslandNum; i++)
+	{
+		for (int j = i + 1; j < nIslandNum; j++)
+		{
+			MakeBridge(i, j);
+			if (nDist[i][j] == INF) continue;
+			BridgeInfo.push_back(make_pair(make_pair(i, j), nDist[i][j]));
+		}
+	}
 }
 
 void BFS(int nRow, int nCol, int nCount)
@@ -36,7 +94,10 @@ void BFS(int nRow, int nCol, int nCount)
 	int nCurRow, nCurCol, nNextRow, nNextCol;
 	bLabelVisited[nRow][nCol] = true;
 	queue <pair <int, int>> Que;
+
 	Que.push(make_pair(nRow, nCol));
+	Label[nCount].push_back(make_pair(nRow, nCol));
+	nMap[nRow][nCol] = nCount;
 
 	while (!Que.empty())
 	{
@@ -54,6 +115,7 @@ void BFS(int nRow, int nCol, int nCount)
 			if (nMap[nNextRow][nNextCol] == 0) continue;
 
 			bLabelVisited[nNextRow][nNextCol] = true;
+			nMap[nNextRow][nNextCol] = nCount;
 			Que.push(make_pair(nNextRow, nNextCol));
 			Label[nCount].push_back(make_pair(nNextRow, nNextCol));
 		}
@@ -67,8 +129,8 @@ void MakeLabel()
 	int nCount = 1;
 	for (int i = 0; i < nVecSize; i++)
 	{
-		int nRow = nVecInput[0].first;
-		int nCol = nVecInput[0].second;
+		int nRow = nVecInput[i].first;
+		int nCol = nVecInput[i].second;
 
 		if (bLabelVisited[nRow][nCol] == false)
 		{
@@ -81,24 +143,97 @@ void MakeLabel()
 	
 }
 
+bool CheckConnect()
+{
+	bool IsConnect = false;
+	bool Connect[7][7] = { false };
+	bool ConnectIsland[7] = { false };
+	int nFirstIsland, nSecondIsland, nCurIsland;
+
+	for (int i = 0; i < nIslandNum; i++)
+	{
+		if (Select[i] == true)
+		{
+			nFirstIsland = BridgeInfo[i].first.first;
+			nSecondIsland = BridgeInfo[i].first.second;
+			Connect[nFirstIsland][nSecondIsland] = true;
+			Connect[nSecondIsland][nFirstIsland] = true;
+		}
+	}
+
+	queue <int> Que; 
+	Que.push(1);
+	ConnectIsland[1] = true;
+	int IslandCnt = 1;
+	
+	while (!Que.empty())
+	{
+		nCurIsland = Que.front();
+		Que.pop();
+
+		if (IslandCnt == nIslandNum - 1)
+		{
+			IsConnect = true;
+			break;
+		}
+
+		for (int i = 1; i < nIslandNum; i++)
+		{
+			if (nCurIsland == i) continue;
+			if (Connect[nCurIsland][i] == true && ConnectIsland[i] == false)
+			{
+				IslandCnt++;
+				ConnectIsland[i] = true;
+				Que.push(i);
+			}
+		}
+
+	}
+
+
+	return IsConnect;
+}
+
+void DistDFS(int nIndex, int nCount, int nSum)
+{
+	if (nCount >= 1)
+	{
+		if (CheckConnect() == true)
+		{
+			if (nAnswer > nSum) nAnswer = nSum;
+		}
+	}
+
+	int nVecSize = BridgeInfo.size();
+	for (int i = nIndex; i < nVecSize; i++)
+	{
+		if (Select[i] == true) continue;
+		Select[i] = true;
+		DistDFS(i, nCount + 1, nSum + BridgeInfo[i].second);
+		Select[i] = false;
+	}
+
+}
+
 void Solve()
 {
 	MakeLabel();
 	FindBridge();
 	DistDFS(0, 0, 0);
 
-	//최소값 리턴하는 부분
+	if (nAnswer == 99999999) cout << "-1" << "\n";
+	else cout << nAnswer << "\n";
 	
 }
 
 int main()
 {
 	freopen("input.txt", "r", stdin);
-	cin >> N, M;
+	cin >> N >> M;
 
-	for (int i = 1; i <=7; i++)
+	for (int i = 0; i < 7; i++)
 	{
-		for (int j = 1; j <= 7; j++)
+		for (int j = 0; j < 7; j++)
 		{
 			nDist[i][j] = INF;
 		}
@@ -109,7 +244,10 @@ int main()
 		for (int j = 0; j < M; j++)
 		{
 			cin >> nMap[i][j];
-			if (nMap[i][j]) nVecInput.push_back(make_pair(i, j));
+			if (nMap[i][j] >= 1)
+			{
+				nVecInput.push_back(make_pair(i, j));
+			}
 		}
 	}
 
