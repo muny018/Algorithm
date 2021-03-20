@@ -1,0 +1,195 @@
+//BOJ17140 이차원 배열과 연산
+
+//문제
+// https://www.acmicpc.net/problem/17140
+
+//해설
+//
+
+// ㅡㅡ nTime = 100 일 때 포함시켜야함. 해석능력이 ..... 후달리네
+
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+vector <pair <int, int> > Vec;
+int r, c, k;
+int nMap[101][101] = { 0 };
+int nAnswer = -1;
+int nLimitRowIdx = 3;
+int nLimitColIdx = 3;
+
+
+void CheckMapRow(int nRow)
+{
+	int nVisitedMap[101] = { 0 };
+
+	for (int nCol = 0; nCol < nLimitColIdx; nCol++)
+	{
+		if (nMap[nRow][nCol] == 0) continue;
+		nVisitedMap[nMap[nRow][nCol]]++;
+	}
+
+	for (int nIdx = 0; nIdx <= 100; nIdx++)
+	{
+		if (nVisitedMap[nIdx] == 0) continue;
+
+		Vec.push_back(make_pair(nVisitedMap[nIdx], nIdx));
+	}
+}
+
+void CheckMapCol(int nCol)
+{
+	int nVisitedMap[101] = { 0 };
+
+	for (int nRow = 0; nRow < nLimitRowIdx; nRow++)
+	{
+		if (nMap[nRow][nCol] == 0) continue;
+		nVisitedMap[nMap[nRow][nCol]]++;
+	}
+
+	for (int nIdx = 0; nIdx <= 100; nIdx++)
+	{
+		if (nVisitedMap[nIdx] == 0) continue;
+
+		Vec.push_back(make_pair(nVisitedMap[nIdx], nIdx));
+	}
+}
+
+void Calc_R()
+{
+	int nVecSize = 0, nCount = 0, nNum = 0;
+	int nColIdxCount = 0;
+	int nIdxCount = 0;
+	int nCopyMap[101][101] = { 0 };
+
+	for (int nRow = 0; nRow < nLimitRowIdx; nRow++)
+	{
+		Vec.clear();
+		nColIdxCount = 0;
+
+		CheckMapRow(nRow);
+		sort(Vec.begin(), Vec.end());
+
+		nVecSize = Vec.size();
+
+		for (int nIdx = 0; nIdx < nVecSize; nIdx++)
+		{
+			if (nColIdxCount >= 100) break;
+
+			nCount = Vec[nIdx].first;
+			nNum = Vec[nIdx].second;
+
+			nCopyMap[nRow][nColIdxCount] = nNum;
+			nCopyMap[nRow][nColIdxCount + 1] = nCount;
+
+			nColIdxCount += 2;
+		}
+		
+		if (nIdxCount < nColIdxCount)  nIdxCount = nColIdxCount;
+	}	
+
+	if (nLimitColIdx < nIdxCount)  nLimitColIdx = nIdxCount;
+
+	for (int nRow = 0; nRow < 101 ; nRow++)
+	{
+		for (int nCol = 0; nCol < 101; nCol++)
+		{
+			nMap[nRow][nCol] = nCopyMap[nRow][nCol];
+		}
+	}
+
+}
+
+void Calc_C()
+{
+	int nVecSize = 0, nCount = 0, nNum = 0;
+	int nRowIdxCount = 0;
+	int nIdxCount = 0;
+	int nCopyMap[101][101] = { 0 };
+
+	for (int nCol = 0; nCol < nLimitColIdx; nCol++)
+	{
+		Vec.clear();
+		nRowIdxCount = 0;
+
+		CheckMapCol(nCol);
+		sort(Vec.begin(), Vec.end());
+
+		nVecSize = Vec.size();
+
+		for (int nIdx = 0; nIdx < nVecSize; nIdx++)
+		{
+			if (nRowIdxCount >= 100) break;
+
+			nCount = Vec[nIdx].first;
+			nNum = Vec[nIdx].second;
+
+			nCopyMap[nRowIdxCount][nCol] = nNum;
+			nCopyMap[nRowIdxCount + 1][nCol] = nCount;
+
+			nRowIdxCount += 2;
+		}
+
+		if (nIdxCount < nRowIdxCount)  nIdxCount = nRowIdxCount;
+	}
+
+	if (nLimitRowIdx < nIdxCount)  nLimitRowIdx = nIdxCount;
+
+	for (int nRow = 0; nRow < 101; nRow++)
+	{
+		for (int nCol = 0; nCol < 101; nCol++)
+		{
+			nMap[nRow][nCol] = nCopyMap[nRow][nCol];
+		}
+	}
+
+}
+
+
+void Solve()
+{
+	for (int nTime = 0; nTime <= 100; nTime++)
+	{
+		if (nMap[r][c] == k)
+		{
+			nAnswer = nTime;
+			break;
+		}
+
+		if (nLimitRowIdx >= nLimitColIdx)
+		{
+			Calc_R();
+		}
+		else
+		{
+			Calc_C();
+		}
+	}
+
+	cout << nAnswer << "\n";
+}
+
+int main()
+{
+	freopen("input.txt", "r", stdin);
+	cin >> r >> c >> k;
+	
+	r = r - 1; 
+	c = c - 1;
+
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			cin >> nMap[i][j];
+		}
+	}
+
+	Solve();
+
+	return 0;
+}
