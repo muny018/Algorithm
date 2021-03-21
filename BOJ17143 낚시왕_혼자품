@@ -1,0 +1,278 @@
+//BOJ17143 낚시왕
+
+//문제
+//https://www.acmicpc.net/problem/17143
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <iostream>
+#include <vector>
+using namespace std; 
+
+struct FishInfo
+{
+	int nRow;
+	int nCol;
+	int nSpeed;
+	int nDir;
+	int nSize;
+};
+
+int dx[] = { 0,0,1,-1 };
+int dy[] = { -1,1,0,0 };
+int nVisited[101][101] = { 0 };
+int R, C, M;
+vector <FishInfo> Vec;
+vector <FishInfo> NewVec;
+int nAnswer = 0;
+
+
+
+void CheckVisited(int nRow, int nCol, int nSpeed, int nDir, int nSize)
+{
+
+	int nVecSize = NewVec.size();
+	for (int nIdx = 0; nIdx < nVecSize; nIdx++)
+	{
+		if (NewVec[nIdx].nRow == nRow && NewVec[nIdx].nCol == nCol && NewVec[nIdx].nSize < nSize)
+		{
+			//기존에 있는거 지우고 새로추가 필요.
+			NewVec.erase(NewVec.begin() + nIdx);
+
+			nVecSize--;
+			nIdx--;
+
+			FishInfo InputInfo;
+			InputInfo.nRow = nRow;
+			InputInfo.nCol = nCol;
+			InputInfo.nSpeed = nSpeed;
+			InputInfo.nDir = nDir;
+			InputInfo.nSize = nSize;
+
+			NewVec.push_back(InputInfo);
+		}
+	}
+
+	nVisited[nRow][nCol]= 1;
+}
+
+void DFS(int nRow, int nCol, int nSpeed, int nRemainSpeed, int nDir, int nSize)
+{
+	if (nRemainSpeed <= 0)
+	{
+		FishInfo InputInfo;
+		InputInfo.nRow = nRow;
+		InputInfo.nCol = nCol;
+		InputInfo.nSpeed = nSpeed;
+		InputInfo.nDir = nDir;
+		InputInfo.nSize = nSize;
+
+		if (nVisited[nRow][nCol] >= 1)
+		{
+			CheckVisited(nRow, nCol, nSpeed, nDir, nSize); //같은 위치 중복 지움
+			return;
+		}
+		else
+		{
+			nVisited[nRow][nCol]++;
+			NewVec.push_back(InputInfo);
+			return;
+		}	
+	}
+
+	int nNextRow = nRow + dy[nDir];
+	int nNextCol = nCol + dx[nDir];
+
+	if (nNextRow < 1 && nDir == 0) //북
+	{
+		nNextRow = 2;
+		nDir = 1;
+	}
+	else if (nNextCol < 1 && nDir == 3) //서
+	{
+		nNextCol = 2;
+		nDir = 2;
+	}
+	else if (nNextCol > C && nDir == 2) //동
+	{
+		nNextCol = C-1;
+		nDir = 3;
+	}
+	else if (nNextRow > R && nDir == 1) //남
+	{
+		nNextRow = R-1;
+		nDir = 0;
+	}
+
+	DFS(nNextRow, nNextCol, nSpeed, nRemainSpeed - 1, nDir, nSize);
+
+
+}
+
+void FishMove()
+{
+	NewVec.clear();
+	int nVecSize = Vec.size();
+
+	int Row;
+	int Col;
+	int Speed, RemainSpeed;
+	int Dir;
+	int Size;
+
+	for (int nRow = 1; nRow <= R; nRow++)
+	{
+		for (int nCol = 1; nCol <= C; nCol++)
+		{
+			nVisited[nRow][nCol] = 0;
+		}
+	}
+
+
+	for (int nIdx = 0; nIdx < nVecSize; nIdx++)
+	{
+		Row = Vec[nIdx].nRow;
+		Col = Vec[nIdx].nCol;
+		Speed = Vec[nIdx].nSpeed;
+		RemainSpeed = Vec[nIdx].nSpeed;
+		Dir = Vec[nIdx].nDir;
+		Size = Vec[nIdx].nSize;
+
+		bool WhileTrue = true;
+		//RemainSpeed 최적화
+		while (WhileTrue)
+		{
+			if (Dir == 0) // 북
+			{
+				if (RemainSpeed >= (Row - 1) * 2)
+				{
+					RemainSpeed -= (Row - 1) * 2;
+					Dir = 1;
+				}
+				else
+				{
+					WhileTrue = false;
+				}
+			}
+			else if (Dir == 1) //남
+			{
+				if (RemainSpeed >= (R - Row) * 2)
+				{
+					RemainSpeed -= (R - Row) * 2;
+					Dir = 0;
+				}
+				else
+				{
+					WhileTrue = false;
+				}
+			}
+			else if (Dir == 2) //동
+			{
+				if (RemainSpeed >= (C - Col) * 2)
+				{
+					RemainSpeed -= (C - Col) * 2;
+					Dir = 3;
+				}
+				else
+				{
+					WhileTrue = false;
+				}
+			}
+			else if (Dir == 3) //서
+			{
+				if (RemainSpeed >= (Col - 1) * 2)
+				{
+					RemainSpeed -= (Col - 1) * 2;
+					Dir = 2;
+				}
+				else
+				{
+					WhileTrue = false;
+				}
+			}
+		}
+		DFS(Row, Col, Speed, RemainSpeed, Dir, Size);
+	}
+
+	Vec.clear();
+	nVecSize = NewVec.size();
+
+	for (int nIdx = 0; nIdx < nVecSize; nIdx++)
+	{
+		Vec.push_back(NewVec[nIdx]);
+	}
+
+}
+
+void HumanMove(int nCol)
+{
+	int nVecSize = Vec.size();
+	for (int nRow = 1; nRow <= R; nRow++)
+	{
+		if (nVisited[nRow][nCol] >= 1)
+		{
+			for (int nIdx = 0; nIdx < nVecSize; nIdx++)
+			{
+				if (Vec[nIdx].nRow == nRow && Vec[nIdx].nCol == nCol)
+				{
+					nAnswer += Vec[nIdx].nSize;
+					Vec.erase(Vec.begin()+nIdx);
+					return;
+
+					//
+					nVecSize--;
+					nIdx--;
+				}
+			}
+		}
+	}
+}
+
+void Solve()
+{
+	for (int nTime = 1; nTime <= C; nTime++)
+	{
+		HumanMove(nTime);
+		FishMove();
+	}
+
+	cout << nAnswer << endl;
+}
+
+int main()
+{
+	//freopen("input.txt", "r", stdin);
+	cin >> R >> C >> M;
+	FishInfo Input;
+
+	int Row, Col, Speed, Dir, Size;
+
+	for (int i = 0; i < M; i++)
+	{
+		cin >> Row >> Col >> Speed >> Dir >> Size;
+		Input.nRow = Row;
+		Input.nCol = Col;
+		Input.nSpeed = Speed;
+		Input.nDir = Dir - 1;
+		Input.nSize = Size;
+
+		Vec.push_back(Input);
+		nVisited[Row][Col] = 1;
+	}
+
+	if (Vec.size() == 0)
+	{
+		cout << "0" << "\n";
+	}
+	else
+	{
+		Solve();
+	}
+
+	
+
+	return 0;
+}
