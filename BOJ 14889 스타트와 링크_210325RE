@@ -1,0 +1,109 @@
+//BOJ 14889 스타트와 링크
+
+//문제
+// https://www.acmicpc.net/problem/14889
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <iostream>
+#include <vector>
+#include <math.h>
+using namespace std;
+
+int nMap[21][21] = { 0 };
+bool bVisited[11] = { false };
+int nAnswer = 999999999;
+int N; 
+
+void CheckScore()
+{
+	int nTeamA_Score = 0;
+	int nTeamB_Score = 0;
+	vector <int> Team_A;
+	vector <int> Team_B;
+
+	for (int i = 0; i < N; i++)
+	{
+		if (bVisited[i] == true)
+		{
+			Team_A.push_back(i);
+		}
+		else
+		{
+			Team_B.push_back(i);
+		}
+	}
+
+	int nVecSize = Team_A.size();
+	int nRow, nCol;
+
+	for (int i = 0; i < nVecSize; i++)
+	{
+		for (int j = 0; j < nVecSize; j++)
+		{
+			if (i == j) continue;
+			nRow = Team_A[i];
+			nCol = Team_A[j];
+			nTeamA_Score += nMap[nRow][nCol];
+		}
+	}
+
+	nVecSize = Team_B.size();
+	for (int i = 0; i < nVecSize; i++)
+	{
+		for (int j = 0; j < nVecSize; j++)
+		{
+			if (i == j) continue;
+			nRow = Team_B[i];
+			nCol = Team_B[j];
+			nTeamB_Score += nMap[nRow][nCol];
+		}
+	}
+
+	if (abs(nTeamA_Score - nTeamB_Score) < nAnswer)
+	{
+		nAnswer = abs(nTeamA_Score - nTeamB_Score);
+	}
+}
+
+void DepthFirstSearch(int nIndex, int nSelectNum)
+{
+	if (nSelectNum >= N / 2)
+	{
+		CheckScore();
+		return;
+	}
+
+	if (nIndex >= N)
+	{
+		return;
+	}
+
+	bVisited[nIndex] = true;
+	DepthFirstSearch(nIndex + 1, nSelectNum + 1);
+	bVisited[nIndex] = false;
+	DepthFirstSearch(nIndex + 1, nSelectNum);
+}
+
+int main()
+{
+	freopen("input.txt", "r", stdin);
+	cin >> N;
+	
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			cin >> nMap[i][j];
+		}
+	}
+
+	DepthFirstSearch(0, 0);
+	
+	cout << nAnswer << endl;
+
+	return 0;
+}
