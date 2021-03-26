@@ -1,0 +1,246 @@
+//BOJ 17822 원판 돌리기
+
+//문제
+// https://www.acmicpc.net/problem/17822
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <iostream>
+#include <vector>
+#include <queue>
+using namespace std; 
+
+struct Order
+{
+	int nNum;
+	int nClockDir;
+	int nCount;
+};
+
+int nMap[51][51] = { 0 };
+bool bVisited[51][51] = { false };
+int N, M, K;
+int dx[] = {1,-1,0,0};
+int dy[] = {0,0,-1,1};
+bool flag = false;
+vector <Order> OrderVec;
+vector <pair<int,int>> EraseVec;
+int nAnswer = 0;
+
+void BFS(int nRow, int nCol)
+{
+	queue <pair<int, int>> Que;
+	Que.push(make_pair(nRow, nCol));
+	int nCurRow, nCurCol, nNextRow, nNextCol;
+
+	while (!Que.empty())
+	{
+		nCurRow = Que.front().first;
+		nCurCol = Que.front().second;
+		Que.pop();
+
+		for (int nIdx = 0; nIdx < 4; nIdx++)
+		{
+			nNextRow = nCurRow + dy[nIdx];
+			nNextCol = nCurCol + dx[nIdx];
+
+			if (nNextCol < 1) nNextCol = M;
+			else if (nNextCol > M) nNextCol = 1;
+
+			if (nNextRow < 1 || nNextRow >N) continue;
+			if (bVisited[nNextRow][nNextCol] || nMap[nNextRow][nNextCol] == 0) continue;
+			if (nMap[nRow][nCol] == nMap[nNextRow][nNextCol])
+			{
+				bVisited[nNextRow][nNextCol] = true;
+				flag = true;
+				EraseVec.push_back(make_pair(nNextRow, nNextCol));
+				EraseVec.push_back(make_pair(nRow, nCol));
+				Que.push(make_pair(nNextRow, nNextCol));
+			}
+			
+		}
+	}
+
+}
+
+void TurnCircle(int nNum, int nClockDir, int nCount, int nAcc)
+{
+	if (nCount == nAcc) return;
+
+	int nCopy[51] = { 0 };
+	if (nClockDir == 0) //시계 방향
+	{
+		for (int i = 1; i <= M; i++)
+		{
+			nCopy[i] = nMap[nNum][i];
+		}
+
+		nMap[nNum][1] = nCopy[M];
+		
+		for (int i = 2; i <= M; i++)
+		{
+			nMap[nNum][i] = nCopy[i - 1];
+		}
+
+		TurnCircle(nNum, nClockDir, nCount, nAcc + 1);
+
+	}
+	else //반시계 방향
+	{
+		for (int i = 1; i <= M; i++)
+		{
+			nCopy[i] = nMap[nNum][i];
+		}
+
+		nMap[nNum][M] = nCopy[1];
+
+		for (int i = M-1; i >= 1; i--)
+		{
+			nMap[nNum][i] = nCopy[i + 1];
+		}
+
+		TurnCircle(nNum, nClockDir, nCount, nAcc + 1);
+	}
+}
+
+void Solve()
+{
+	vector <int> vSelectNum;
+	int nNum, nClockDir, nCount, Multiply, nVecSize, nValue, nValueNum;;
+	float fAverage = 0.0f;
+
+	for (int nTime = 0; nTime < K; nTime++)
+	{
+		//초기화
+		vSelectNum.clear();
+		EraseVec.clear();
+		flag = false;
+		for (int i = 1; i <= N; i++)
+		{
+			for (int j = 1; j <= M; j++)
+			{
+				bVisited[i][j] = 0;
+			}
+		}
+
+		Multiply = 1;
+
+		nNum = OrderVec[nTime].nNum;
+		nClockDir = OrderVec[nTime].nClockDir;
+		nCount = OrderVec[nTime].nCount;
+
+		while (true)
+		{
+			if (nNum*Multiply > N) break;
+			else
+			{
+				vSelectNum.push_back(nNum*Multiply);
+				Multiply++;
+			}
+		}
+
+		nVecSize = vSelectNum.size();
+
+		//원판 돌리기
+		for (int i = 0; i < nVecSize; i++)
+		{
+			TurnCircle(vSelectNum[i], nClockDir, nCount,0);
+		}
+
+		//조회
+		for (int i = 1; i <= N; i++)
+		{
+			for (int j = 1; j <= M; j++)
+			{
+				if (bVisited[i][j] || nMap[i][j]==0) continue;
+				bVisited[i][j] = true;
+				BFS(i, j);
+			}
+		}
+
+		if (flag == true)
+		{
+			nVecSize = EraseVec.size();
+			for (int i = 0; i < nVecSize; i++)
+			{
+				int nCurRow = EraseVec[i].first;
+				int nCurCol = EraseVec[i].second;
+				nMap[nCurRow][nCurCol] = 0;
+			}
+		
+		}
+		else //평균값 구하고 크면 -1 작으면 +1 
+		{
+			nValue = 0, nValueNum = 0, fAverage = 0.0f;
+			for (int i = 1; i <= N; i++)
+			{
+				for (int j = 1; j <= M; j++)
+				{
+					if (nMap[i][j] == 0) continue;
+					nValue += nMap[i][j];
+					nValueNum++;
+				}
+			}
+
+			fAverage = (float)nValue / (float)nValueNum;
+
+			for (int i = 1; i <= N; i++)
+			{
+				for (int j = 1; j <= M; j++)
+				{
+					if (nMap[i][j] == 0) continue;
+					if (nMap[i][j] > fAverage) nMap[i][j]--;
+					else if (nMap[i][j] < fAverage) nMap[i][j]++;
+				}
+			}
+
+			int stop = 0;
+		}
+	}
+
+	//원판에 적힌 합
+	for (int i = 1; i <= N; i++)
+	{
+		for (int j = 1; j <= M; j++)
+		{
+			if (nMap[i][j] == 0) continue;
+			nAnswer += nMap[i][j];
+		}
+	}
+
+
+}
+
+int main()
+{
+	Order Input;
+	int a, b, c;
+	freopen("input.txt", "r", stdin);
+	cin >> N >> M >> K;
+
+	for (int i = 1; i <= N; i++)
+	{
+		for (int j = 1; j <= M; j++)
+		{
+			cin >> nMap[i][j];
+		}
+	}
+
+	for (int i = 1; i <= K; i++)
+	{
+		cin >> a >> b >> c;
+		Input.nNum = a;
+		Input.nClockDir = b;
+		Input.nCount = c;
+		OrderVec.push_back(Input);
+	}
+
+	Solve();
+
+	cout << nAnswer << endl;
+
+	return 0;
+}
