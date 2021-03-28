@@ -1,0 +1,215 @@
+//BOJ 17135 캐슬 디펜스
+
+//문제
+//https://www.acmicpc.net/problem/17135
+
+//해설
+// 
+
+/*
+순열 조합으로 궁수위치 지정
+	- 궁수공격 (거리 D 이하중 가장 가깝고 왼쪽에 잇는거, 중복 공격 가능)
+	- 공격당한 궁수 제거
+	- 나머지 궁수 한칸 아래로 전진
+	- 성이랑 만나면 제거
+	- 궁수가 제거한 수 카운팅
+*/
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <algorithm>
+#include <cstring>
+using namespace std; 
+int N, M, D;
+int nInputnMap[16][16] = { 0 };
+int nMap[16][16] = { 0 };
+bool bVisited[16][16] = { 0 };
+bool bSelect[16] = { 0 };
+bool bAttacked[16][16] = { false };
+int dx[] = { -1,1,0,0 };
+int dy[] = { 0,0,-1,1 };
+vector <pair<int, pair<int, int>>> EraseVec;
+int nAnswer = 0;
+
+void BFS(int nRow, int nCol)
+{
+	int Distance; 
+	queue <pair<int, int>> Que;
+	Que.push(make_pair(nRow, nCol));
+
+	int nCurRow, nCurCol, nNextRow, nNextCol;
+	while (!Que.empty())
+	{
+		nCurRow = Que.front().first;
+		nCurCol = Que.front().second;
+		Que.pop();
+
+		for (int nIdx = 0; nIdx < 4; nIdx++)
+		{
+			nNextRow = nCurRow + dy[nIdx];
+			nNextCol = nCurCol + dx[nIdx];
+			Distance = abs(nRow - nNextRow) + abs(nCol - nNextCol);
+
+			if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= M) continue;
+			if (bVisited[nNextRow][nNextCol]) continue;
+			if (Distance <= D)
+			{
+				bVisited[nNextRow][nNextCol] = true;
+				Que.push(make_pair(nNextRow, nNextCol));
+
+				if (nMap[nNextRow][nNextCol])
+				{
+					EraseVec.push_back(make_pair(Distance, make_pair(nNextCol, nNextRow)));
+				}
+			}
+		}
+	}
+
+}
+
+bool CheckEnemy()
+{
+	bool flag = false;
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			if (nMap[i][j]) return true;
+		}
+	}
+
+	return flag;
+}
+
+void ArcherHunt()
+{
+	vector <pair<int, int>> ArcherVec;
+	ArcherVec.clear();
+	int nVecSize, nArcherRow, nArcherCol;
+	int nValue = 0;
+	
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			nMap[i][j] = nInputnMap[i][j];
+
+		}
+	}
+
+	for (int i = 0; i < M; i++)
+	{
+		if (bSelect[i] == true)
+		{
+			ArcherVec.push_back(make_pair(N, i));
+		}
+	}
+
+	nVecSize = ArcherVec.size();
+
+	while (true)
+	{
+		if (CheckEnemy() == false) break;
+
+		memset(bAttacked, 0, sizeof(bAttacked));
+		
+
+		//적군 사살
+		for (int i = 0; i < nVecSize; i++)
+		{
+			memset(bVisited, 0, sizeof(bVisited));
+			EraseVec.clear();
+
+			nArcherRow = ArcherVec[i].first;
+			nArcherCol = ArcherVec[i].second;
+
+			BFS(nArcherRow, nArcherCol);
+			
+			if (EraseVec.size() > 0)
+			{
+				sort(EraseVec.begin(), EraseVec.end());
+				int nCol = EraseVec[0].second.first;
+				int nRow = EraseVec[0].second.second;
+				bAttacked[nRow][nCol] = true;
+			}
+		}
+
+		for (int i = 0; i < N; i++)
+		{
+			for (int j = 0; j < M; j++)
+			{
+				if (bAttacked[i][j])
+				{
+					nMap[i][j] = 0;
+					nValue++;
+				}
+				
+			}
+		}
+
+		//1보 전진
+		int nCopyMap[16][16] = { 0 };
+		for (int i = 0; i < N; i++)
+		{
+			for (int j = 0; j < M; j++)
+			{
+				nCopyMap[i][j] = nMap[i][j];
+			}
+		}
+
+		for (int j = 0; j < M; j++)
+		{
+			nMap[0][j] = 0;
+		}
+
+		for (int i = 1; i < N; i++)
+		{
+			for (int j = 0; j < M; j++)
+			{
+				nMap[i][j] = nCopyMap[i - 1][j];
+			}
+		}
+	}
+
+	if (nAnswer < nValue) nAnswer = nValue;
+}
+
+void ArcherSelect(int nIndex, int nCount)
+{
+	if (nCount >= 3)
+	{
+		ArcherHunt();
+		return;
+	}
+
+	if (nIndex >= M) return;
+
+	bSelect[nIndex] = true;
+	ArcherSelect(nIndex + 1, nCount + 1);
+	bSelect[nIndex] = false;
+	ArcherSelect(nIndex + 1, nCount);
+
+}
+
+int main()
+{
+	freopen("input.txt", "r", stdin);
+	cin >> N >> M >> D;
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			cin >> nInputnMap[i][j];
+		}
+	}
+
+	ArcherSelect(0, 0);
+
+	cout << nAnswer << "\n";
+
+	return 0;
+}
