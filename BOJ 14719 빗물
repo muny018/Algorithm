@@ -1,0 +1,88 @@
+//BOJ 14719 빗물
+
+//문제
+//https://www.acmicpc.net/problem/14719
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <iostream>
+using namespace std; 
+
+int nMap[501][501] = { 0 };
+bool bVisited[501][501] = { false };
+int N, M;
+int nAnswer = 0;
+
+void CheckRain(int nRow, int nCol)
+{
+	int nNextCol;
+	bVisited[nRow][nCol] = true;
+
+	int nStartRow = nRow;
+	int nStartCol = nCol;
+
+	nNextCol = nStartCol + 1;
+	int nCount = 0;
+
+	while (true)
+	{
+		if (nNextCol >= M)
+		{
+			return;
+		}
+		else if (nMap[nStartRow][nNextCol] == 0)
+		{
+			bVisited[nStartRow][nNextCol] = true;
+			nCount++;
+			nNextCol++;
+		}
+		else if (nMap[nStartRow][nNextCol] == 1)
+		{
+			//bVisited[nStartRow][nNextCol] = true;
+			nAnswer += nCount;
+			break;
+		}
+	}
+
+}
+
+void Solve()
+{
+	for (int j = 0; j < M; j++)
+	{
+		for (int i = 0; i < N; i++)
+		{
+			if (bVisited[i][j] || nMap[i][j] == 0 ) continue;
+			CheckRain(i, j);
+		}
+	}
+	
+}
+
+int main()
+{
+	freopen("input.txt", "r", stdin);
+	cin >> N >> M;
+
+	int nInput,Row;
+	for (int i = 0; i < M; i++)
+	{
+		cin >> nInput;
+		Row = N-1;
+		while (nInput)
+		{
+			nMap[Row][i] = 1;
+			Row--;
+			nInput--;
+		}
+	}
+
+	Solve();
+
+	cout << nAnswer << "\n";
+
+	return 0;
+}
