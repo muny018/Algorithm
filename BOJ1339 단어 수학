@@ -1,0 +1,126 @@
+//BOJ1339 단어 수학
+
+//문제
+//https://www.acmicpc.net/problem/1339
+
+//해설
+//https://velog.io/@gfriend-yerin/BOJ-1339-%EB%8B%A8%EC%96%B4-%EC%88%98%ED%95%99
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
+#include <cstring>
+#include <string>
+#include <algorithm>
+#include "math.h";
+#include <vector>
+using namespace std; 
+
+vector <int> Vec;
+int nMap[11] = { 0 };
+bool bVisited[11] = { false };
+bool bCount[26] = { false };
+string Input[11];
+int N;
+int nAnswer = 0;
+int AlphaCount = 0;
+
+int find(int nValue)
+{
+	int nVecSize = Vec.size();
+	for (int i = 0; i < nVecSize; i++)
+	{
+		if (Vec[i] == nValue) return i;
+	}
+
+	return -1;
+}
+
+int CalcValue(int nIndex)
+{
+	string strInput = Input[nIndex];
+	int nStrSize = strInput.size();
+	int nValue = 0;
+	int nStrValue = 0;
+	int nIdx = 0;
+	int nSum = 0;
+	int Multiply = 1;
+
+	for (int i = nStrSize - 1; i > 0; i--) Multiply = Multiply * 10;
+
+	for (int i = nStrSize-1; i >=0; i--)
+	{
+		//nStrValue = StrtoValue(strInput[nIdx]);
+		nStrValue = find(strInput[nIdx] - 'A');
+		nValue += nMap[nStrValue] * Multiply;
+		Multiply = Multiply / 10;
+		nIdx++;
+	}
+
+	return nValue;
+}
+
+void Solve()
+{
+	int nValue = 0;
+	for (int i = 0; i < N; i++)
+	{
+		nValue += CalcValue(i);
+	}
+
+	if (nValue > nAnswer) nAnswer = nValue;
+}
+
+void DepthFirstSearch(int nIndex)
+{
+	if (nIndex == AlphaCount)
+	{
+		Solve();
+		return;
+	}
+
+	for (int i = 0; i < AlphaCount; i++)
+	{
+		if (bVisited[i] == true) continue;
+		{
+			bVisited[i] = true;
+			nMap[nIndex] = 10-i-1;
+			DepthFirstSearch(nIndex+1);
+			bVisited[i] = false;
+		}
+	}
+
+}
+
+int main()
+{
+	freopen("input.txt", "r", stdin);
+	cin >> N;
+	int nValue;
+
+	for (int i = 0; i < N; i++)
+	{
+		cin >> Input[i];
+
+		int nSize = Input[i].size();
+
+		for (int j = 0; j < nSize; j++)
+		{
+			nValue = Input[i][j] - 'A';
+			if (bCount[nValue] == true) continue;
+			bCount[nValue] = true;
+			Vec.push_back(nValue);
+		}
+	}
+
+	for (int i = 0; i < 26; i++)
+	{
+		if (bCount[i] == true) AlphaCount++;
+	}
+
+	DepthFirstSearch(0);
+
+	cout << nAnswer << endl;
+	
+
+	return 0;
+}
