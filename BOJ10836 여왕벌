@@ -1,0 +1,99 @@
+//BOJ10836 여왕벌
+
+//문제
+//https://www.acmicpc.net/problem/10836
+
+//해설
+//https://kthng.tistory.com/34
+
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <iostream>
+using namespace std;
+
+int M, N;
+int nMap[701][701] = { 0 };
+int Cache[1400] = { 0 };
+
+int WhatMax(int nCurRow, int nCurCol)
+{
+	int nMax = 0;
+
+	int nLeftValue = nMap[nCurRow][nCurCol - 1] - 1;
+	int nLeftTopValue = nMap[nCurRow - 1][nCurCol - 1] - 1;
+	int nTopValue = nMap[nCurRow - 1][nCurCol] - 1;
+
+	if (nLeftValue >= nLeftTopValue)  nMax = nLeftValue;
+	else nMax = nLeftTopValue;
+
+	if (nTopValue >= nMax) nMax = nTopValue;
+
+	return nMax;
+}
+
+void Solve()
+{
+	int Input;
+
+	for (int i = 0; i < M; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			nMap[i][j] = 1;
+		}
+	}
+
+	//왼쪽열, 상단행 숫자 더하기
+	int nIdx = 0;
+	for (int i = M - 1; i >= 0; i--)
+	{
+		nMap[i][0] += Cache[nIdx];
+		nIdx++;
+	}
+	for (int i = 1; i < M; i++)
+	{
+		nMap[0][i] += Cache[nIdx];
+		nIdx++;
+	}
+
+	for (int i = 1; i < M; i++)
+	{
+		for (int j = 1; j < M; j++)
+		{
+			nMap[i][j] += WhatMax(i, j);
+		}
+	}
+}
+
+
+int main()
+{
+	freopen("input.txt", "r", stdin);
+	cin >> M >> N;
+
+	int a, b, c;
+	for (int i = 0; i < N; i++)
+	{
+		cin >> a >> b >> c;
+		Cache[a]++;
+		Cache[a + b]++;
+	}
+
+	for (int i = 1; i < 2 * M - 1; i++)
+	{
+		Cache[i] += Cache[i - 1];
+	}
+
+	Solve();
+
+	for (int i = 0; i < M; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			cout << nMap[i][j] << " ";
+		}
+		cout << "\n";
+	}
+
+	return 0;
+}
