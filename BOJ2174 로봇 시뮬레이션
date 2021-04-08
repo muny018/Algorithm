@@ -1,0 +1,140 @@
+//BOJ2174 로봇 시뮬레이션
+
+//문제
+// https://www.acmicpc.net/problem/2174
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+struct Info {
+	int nNum;
+	int nRow;
+	int nCol;
+	int nDir;
+};
+
+struct Order {
+	int nNum;
+	char cOrder;
+	int nCount;
+};
+
+vector <Info> Robotvec;
+vector <Order> OrderVec;
+int A, B, N, M;
+int nMap[101][101] = { 0 };
+int dx[] = {-1,0,1,0}; //서북동남
+int dy[] = {0,1,0,-1};
+bool Flag = false;
+
+void Solve()
+{
+	int nNum, nCount, nNextRow, nNextCol;
+	int nRow, nCol, nDir;
+	char cOrder;
+	int nVecSize = Robotvec.size();
+	int nFindIdx = 0;
+	for (int nTime = 0; nTime < M; nTime++)
+	{
+		nNum = OrderVec[nTime].nNum;
+		cOrder = OrderVec[nTime].cOrder;
+		nCount = OrderVec[nTime].nCount;
+
+		for (int i = 0; i < nVecSize; i++)
+		{
+			if (Robotvec[i].nNum == nNum)
+			{
+				nFindIdx = i;
+				break;
+			}
+		}
+
+
+		if (cOrder == 'L')
+		{
+			Robotvec[nFindIdx].nDir = Robotvec[nFindIdx].nDir - nCount;
+			if (Robotvec[nFindIdx].nDir < 0) Robotvec[nFindIdx].nDir = 4 + Robotvec[nFindIdx].nDir;
+		}
+		else if (cOrder == 'R')
+		{
+			Robotvec[nFindIdx].nDir = Robotvec[nFindIdx].nDir + nCount;
+			if (Robotvec[nFindIdx].nDir >= 4) Robotvec[nFindIdx].nDir = Robotvec[nFindIdx].nDir - 4 ;
+		}
+		else if (cOrder == 'F')
+		{
+			nRow = Robotvec[nFindIdx].nRow;
+			nCol = Robotvec[nFindIdx].nCol;
+			nDir = Robotvec[nFindIdx].nDir;
+
+			for (int i = 1; i <= nCount; i++)
+			{
+				nNextRow = nRow + dy[nDir] * i;
+				nNextCol = nCol + dx[nDir] * i;
+
+				if (nNextRow < 0 || nNextRow >= B || nNextCol < 0 || nNextCol >= A)
+				{
+					cout << "Robot " << nNum << " crashes into the wall" << "\n";
+					Flag = true;
+					return;
+				}
+				else if (nMap[nNextRow][nNextCol] != 0)
+				{
+					cout << "Robot " << nNum << " crashes into robot " << nMap[nNextRow][nNextCol] << "\n";
+					Flag = true;
+					return;
+				}
+			}
+
+			nMap[nRow][nCol] = 0;
+			nMap[nNextRow][nNextCol] = nNum;
+			Robotvec[nFindIdx].nRow = nNextRow;
+			Robotvec[nFindIdx].nCol = nNextCol;
+		}
+	}
+}
+
+int main()
+{
+	freopen("input.txt", "r", stdin);
+	cin >> A >> B >> N >> M;
+
+	Info Input;
+	char cInput;
+	for (int i = 0; i < N; i++)
+	{
+		cin >> Input.nCol >> Input.nRow >> cInput;
+		Input.nRow--;
+		Input.nCol--;
+		if (cInput == 'W') Input.nDir = 0;
+		else if (cInput == 'N') Input.nDir = 1;
+		else if (cInput == 'E') Input.nDir = 2;
+		else if (cInput == 'S') Input.nDir = 3;
+		Input.nNum = i + 1;
+		Robotvec.push_back(Input);
+		nMap[Input.nRow][Input.nCol] = Input.nNum;
+	}
+
+	Order OrderInput;
+	for (int i = 0; i < M; i++)
+	{
+		cin >> OrderInput.nNum >> OrderInput.cOrder >> OrderInput.nCount;
+		if (OrderInput.cOrder != 'F') OrderInput.nCount = OrderInput.nCount % 4;
+
+		OrderVec.push_back(OrderInput);
+	}
+
+	Solve();
+
+	if (Flag == false)
+	{
+		cout << "OK" << "\n";
+	}
+
+	return 0; 
+}
