@@ -1,0 +1,146 @@
+//BOJ5577 RBY팡!
+
+//문제
+//https://www.acmicpc.net/problem/5577
+
+//해설
+// 
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
+using namespace std; 
+
+/*
+1) 완전탐색
+처음부터 끝까지 본인색깔이면 스킵하고 색깔바꾼다.
+
+2) 바꾸고 나서 PANG 있는지 스캔
+	인덱스 쭊쭊 늘려가면서 4이상인지 확인
+	시작 인덱스, 끝 인덱스 저장
+
+	-> PANG 있다.
+	-끝인덱스 ~ 끝까지
+		- 시작인덱스 ~ (끝까지 - 길이) 만큼 복사
+	-> 다시또 PANG 있는지 검색
+
+	-> PANG 없다. 공 갯수 최소값인지 확인하고
+		nMap 원복하고 다음 완탐 검색
+*/
+
+int N;
+int nAnswer = 999999;
+int nInputMap[10001] = { 0 };
+int nMap[10001] = { 0 };
+int nCopyMap[10001] = { 0 };
+int nSumCount = 0;
+int nEndPoint = 0;
+
+int  Pang(int nStartIdx, int nEndIdx)
+{
+	int nDistace = nEndIdx - nStartIdx+1;
+	for (int i = 0; i < N; i++)
+	{
+		nCopyMap[i] = nMap[i];
+	}
+
+	for (int i = nEndIdx+1; i <N; i++)
+	{
+		nMap[i - nDistace] = nCopyMap[i];
+	}
+
+	//nMap 꼬리짜르기
+	for (int i = N - 1; i > N - 1 - nDistace; i--)
+	{
+		nMap[i] = 0; 
+	}
+	nEndPoint -= nDistace;
+
+	return nDistace;
+}
+
+bool SearchPang()
+{
+	int nStartIndex = 0;
+	int nEndIndex = 0;
+	int nCount = 1;
+	for (int i = 1; i <= nEndPoint; i++)
+	{
+		
+		if (i == nEndPoint && nCount >= 4)
+		{
+			nSumCount += Pang(nStartIndex, nEndIndex);
+			return true;
+		}
+
+		if (nMap[i] == 0) break;
+		// if (nMap[i] == 0) continue;  continue 해도 맞았다.
+
+		if (nMap[i] == nMap[i - 1])
+		{
+			nEndIndex = i;
+			nCount++;
+		}
+		else if (nCount >= 4)
+		{
+			nSumCount += Pang(nStartIndex, nEndIndex);
+			return true;
+		}
+		else if (nMap[i] != nMap[i - 1])
+		{
+			nStartIndex = i;
+			nCount = 1;
+		}
+	}
+
+	return false;
+}
+
+void Solve(int nIdx, int nValue)
+{
+	for (int i = 0; i < N; i++)
+	{
+		nMap[i] = nInputMap[i];
+	}
+	nMap[nIdx] = nValue;
+
+	nSumCount = 0;
+	bool PangFlag = false;
+	nEndPoint = N;
+
+	while (true)
+	{
+		PangFlag = SearchPang();
+
+		if (PangFlag == false) break;
+	}
+
+	int Count = 0;
+	Count = N - nSumCount;
+
+	if (Count < nAnswer) nAnswer = Count;
+
+}
+
+int main()
+{
+	freopen("input.txt", "r", stdin);
+	cin >> N;
+
+	for (int i = N-1; i >= 0; i--)
+	{
+		cin >> nInputMap[i];
+	}
+
+	int Backup = 0; 
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 1; j <= 3; j++)
+		{
+			if (nInputMap[i] == j) continue;
+			Solve(i,j);
+		}
+	}
+	cout << nAnswer << "\n";
+
+	return 0;
+}
