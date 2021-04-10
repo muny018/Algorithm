@@ -1,0 +1,214 @@
+//BOJ18809 Gaaaaaaaaaarden
+
+//문제
+//https://www.acmicpc.net/problem/18809
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
+#include <vector>
+#include <queue>
+using namespace std; 
+
+// 0 : 호수, 1 : 배양액 불가땅, 2 : 배양액 가능 땅, 3 : 그린배양액, 4: 레드 배양액 
+
+struct Info {
+	int nRow;
+	int nCol;
+	int nColor;
+	int nTime;
+};
+
+struct MapInfo 
+{
+	int nColor;
+	int nTime;
+};
+
+/*
+1) 입력
+
+2) 배양액 설치할 위치 순열로 뽑기
+	- 2단 DepthFirstSearch 구현, 레드 버젼, 초록 버젼
+
+3) 순열로 뽑아진대로 BFS 진행
+	=Row, Col, Color, nTime
+
+4) 방문할려는 곳이 비어있고, 같은 시간안에 다른 컬러가 만나게 되면 꽃,
+	- 다른시간이면, continue 처리
+
+*/
+
+int nInputMap[51][51] = { 0 }; 
+int nVisited[11] = { 0 };
+vector <Info> Vec;
+int N, M, G, R;
+int nInputVecSize;
+int nAnswer = 0;
+int dx[] = { -1,0,1,0 }; // 서북동남
+int dy[] = { 0,-1,0,1 };
+MapInfo nMap[51][51];
+
+void BFS()
+{
+	Info Input;
+	queue <Info> Que;
+	
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			nMap[i][j].nColor = nInputMap[i][j];
+			nMap[i][j].nTime = 0;
+		}
+	}
+
+	for (int i = 0; i < nInputVecSize; i++)
+	{
+		if (nVisited[i] == 3) //그린
+		{
+			Input = Vec[i];
+			Input.nColor = 3;
+			Que.push(Input);
+			nMap[Input.nRow][Input.nCol].nColor = Input.nColor;
+		}
+		else if (nVisited[i] == 4) //빨강
+		{
+			Input = Vec[i];
+			Input.nColor = 4;
+			Que.push(Input);
+			nMap[Input.nRow][Input.nCol].nColor = Input.nColor;
+		}
+	}
+
+	int nQueSize = Que.size();
+	int nCurRow, nCurCol, nCurColor, nCurTime;
+	int nNextRow, nNextCol;
+	int nFlower = 0;
+	int Time = 0;
+	
+	while (!Que.empty())
+	{
+		nQueSize = Que.size();
+		Time++;
+
+		for (int t = 0; t < nQueSize; t++)
+		{
+			nCurRow = Que.front().nRow;
+			nCurCol = Que.front().nCol;
+			nCurColor = Que.front().nColor;
+			nCurTime = Time;
+			Que.pop();
+
+			if (nMap[nCurRow][nCurCol].nColor == 5) continue;
+
+			for (int nidx = 0; nidx < 4; nidx++)
+			{
+				nNextRow = nCurRow + dy[nidx];
+				nNextCol = nCurCol + dx[nidx];
+
+				if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= M) continue;
+				if (nMap[nNextRow][nNextCol].nColor == 0 || nMap[nNextRow][nNextCol].nColor == 5) continue;
+
+				if (nMap[nNextRow][nNextCol].nColor == 1 || nMap[nNextRow][nNextCol].nColor == 2)
+				{
+					nMap[nNextRow][nNextCol].nColor = nCurColor;
+					nMap[nNextRow][nNextCol].nTime = nCurTime;
+					Input.nRow = nNextRow;
+					Input.nCol = nNextCol;
+					Input.nColor = nCurColor;
+					Input.nTime = nCurTime;
+					Que.push(Input);
+				}
+				else if (nMap[nNextRow][nNextCol].nColor != nCurColor && nMap[nNextRow][nNextCol].nTime == nCurTime)
+				{
+					nMap[nNextRow][nNextCol].nColor = 5;
+					nMap[nNextRow][nNextCol].nTime = nCurTime;
+					nFlower++;
+				}
+			}
+
+		}
+
+
+	}
+	
+	if (nFlower > nAnswer) nAnswer = nFlower;
+
+
+}
+
+void RedDFS(int nIndex, int nRedCount)
+{
+	if (nRedCount >= R)
+	{
+		BFS();
+		return;
+	}
+	else if (nIndex >= nInputVecSize)
+	{
+		return;
+	}
+
+	if (nVisited[nIndex] == 0)
+	{
+		nVisited[nIndex] = 4;
+		RedDFS(nIndex + 1, nRedCount + 1);
+		nVisited[nIndex] = 0;
+	}
+
+	RedDFS(nIndex + 1, nRedCount);
+	
+
+}
+
+void GreenDFS(int nIndex, int nGreenCount)
+{
+	if (nGreenCount >= G)
+	{
+		RedDFS(0, 0);
+		return;
+	}
+	else if (nIndex >= nInputVecSize)
+	{
+		return;
+	}
+
+	nVisited[nIndex] = 3;
+	GreenDFS(nIndex + 1, nGreenCount+1);
+	nVisited[nIndex] = 0;
+	GreenDFS(nIndex + 1, nGreenCount);
+}
+
+int main()
+{
+	freopen("input.txt", "r", stdin);
+	cin >> N >> M >> G >> R;
+	Info InputInfo;
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			cin >> nInputMap[i][j];
+			if (nInputMap[i][j] == 2)
+			{
+				InputInfo.nRow = i;
+				InputInfo.nCol = j;
+				InputInfo.nColor = 0;
+				InputInfo.nTime = 0;
+				Vec.push_back(InputInfo);
+			}
+		}
+	}
+	nInputVecSize = Vec.size();
+
+	GreenDFS(0,0);
+
+	cout << nAnswer << "\n";
+
+
+	return 0;
+}
