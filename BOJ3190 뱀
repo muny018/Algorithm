@@ -1,0 +1,153 @@
+//BOJ3190 뱀
+
+//문제
+//https://www.acmicpc.net/problem/3190
+
+//해설
+// 
+
+/*
+방향전환은 벡터에 넣어두고
+
+while 문 안에 끝자락에 방향전환 시퀀스 만들어두자
+
+- nMap만들어서 2는 사과위치 1은 뱀의 위치로 해놓자
+	-뱀의 머리 전진방향에 벽이거나 본인 몸이면 시간 출력하자
+
+- 머리위치랑 꼬리위치는 항상 업데이트 하도록 하자
+*/
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <vector>
+#include <iostream>
+#include <queue>
+using namespace std; 
+
+struct Pos
+{
+	int nRow;
+	int nCol;
+	int nDir;
+};
+
+struct DirInfo
+{
+	int nTime;
+	int nDir;  // 1이면 반시계방향(왼쪽), 2이면 시계방향(오른쪽)
+};
+
+int nMap[101][101] = { 0 };  //1 : 뱀, 2 : 사과
+int N, K, L;
+int dx[] = { -1,0,1,0 }; //서북동남
+int dy[] = { 0,-1,0,1 };
+vector <DirInfo> InputDir;
+queue <Pos> Snake;
+
+void Solve()
+{
+	Pos Head;
+	Pos Tail;
+
+	Head.nRow = 0;
+	Head.nCol = 0;
+	Head.nDir = 2;
+
+	Snake.push(Head);
+
+	int nVecSize = InputDir.size();
+	int nCurTime = 0;
+	int nNextRow, nNextCol, nNextDir;
+	int nCurRow, nCurCol, nCurDir;
+	int VecIndex = 0;
+	bool VecFlag = true;
+	nMap[0][0] = 1;
+	while (true)
+	{
+		nCurTime++;
+		nCurRow = Head.nRow;
+		nCurCol = Head.nCol;
+		nCurDir = Head.nDir;
+		
+		//전진
+		nNextRow = nCurRow + dy[nCurDir];
+		nNextCol = nCurCol + dx[nCurDir];
+
+		//전진했는데, 본인몸이나 벽이 있었음 (종료)
+		if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= N || nMap[nNextRow][nNextCol] == 1)
+		{
+			cout << nCurTime << "\n";
+			return;
+		}
+
+		//사과 시퀀스 (사과 없으면 꼬리없앰)
+		if (nMap[nNextRow][nNextCol] == 0)
+		{
+			Tail = Snake.front();
+			Snake.pop();
+			nMap[Tail.nRow][Tail.nCol] = 0;
+		}
+
+		nNextDir = nCurDir;
+		//방향전환
+		if (VecFlag == true && InputDir[VecIndex].nTime == nCurTime)
+		{
+			if (InputDir[VecIndex].nDir == 1) //왼쪽
+			{
+				nNextDir = nCurDir - 1;
+				if (nNextDir < 0) nNextDir = 3;
+			}
+			else if (InputDir[VecIndex].nDir == 2) //오른쪽
+			{
+				nNextDir = nCurDir + 1;
+				if (nNextDir >= 4) nNextDir = 0;
+			}
+
+			VecIndex++;
+			if (VecIndex >= nVecSize) VecFlag = false;
+		}
+
+		nMap[nNextRow][nNextCol] = 1;
+		Head.nRow = nNextRow;
+		Head.nCol = nNextCol;
+		Head.nDir = nNextDir;
+		Snake.push(Head);
+	}
+	
+}
+
+int main()
+{
+	DirInfo InputInfo;
+	freopen("input.txt", "r", stdin);
+	cin >> N >> K;
+	int a, b;
+	char c;
+	for (int i = 0; i < K; i++)
+	{
+		cin >> a >> b;
+		nMap[a - 1][b - 1] = 2;
+	}
+	cin >> L;
+
+	for (int i = 0; i < L; i++)
+	{
+		cin >> a >> c;
+		InputInfo.nTime = a;
+		if (c == 'L')
+		{
+			InputInfo.nDir = 1;
+		}
+		else if (c == 'D')
+		{
+			InputInfo.nDir = 2;
+		}
+
+		InputDir.push_back(InputInfo);
+	}
+
+
+	Solve();
+
+
+	return 0;
+}
