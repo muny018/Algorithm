@@ -1,0 +1,148 @@
+//BOJ17070 파이프 옮기기1
+
+//문제
+//https://www.acmicpc.net/problem/17070
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
+using namespace std; 
+int N; 
+int nAnswer = 0;
+int nMap[17][17] = { 0 }; // -1 : 벽, 0 : 빈칸, 1 :가로, 2: 대각, 3: 세로
+
+bool CheckDiagonal(int nCurRow, int nCurCol)
+{
+	if (nCurRow + 1 >= N) return false;
+	if (nCurCol + 1 >= N) return false;
+
+	if (nMap[nCurRow + 1][nCurCol] == 0 && nMap[nCurRow+1][nCurCol+1] == 0 && nMap[nCurRow][nCurCol+1] == 0) return true;
+
+	return false;
+}
+
+bool CheckVert(int nCurRow, int nCurCol)
+{
+	if (nCurRow + 1 >= N) return false;
+
+	if (nMap[nCurRow+1][nCurCol] == 0) return true;
+
+	return false;
+}
+
+bool CheckHorz(int nCurRow, int nCurCol)
+{
+	if (nCurCol + 1 >= N) return false;
+
+	if (nMap[nCurRow][nCurCol + 1] == 0) return true;
+
+	return false;
+}
+
+void DepthFirstSearch(int nCurRow, int nCurCol, int nDir)
+{
+	if (nCurRow == N - 1 && nCurCol == N - 1)
+	{
+		nAnswer++;
+		return;
+	}
+
+	if (nDir == 1) //가로
+	{
+		if (CheckHorz(nCurRow, nCurCol))
+		{
+			nMap[nCurRow][nCurCol + 1] = 1;
+			DepthFirstSearch(nCurRow, nCurCol + 1, 1);
+			nMap[nCurRow][nCurCol + 1] = 0;
+		}
+
+		if (CheckDiagonal(nCurRow, nCurCol))
+		{
+			nMap[nCurRow+1][nCurCol + 1] = 2;
+			DepthFirstSearch(nCurRow + 1, nCurCol + 1, 2);
+			nMap[nCurRow + 1][nCurCol + 1] = 0;
+		}
+
+	}
+	else if (nDir == 2) //대각
+	{
+		if (CheckHorz(nCurRow, nCurCol))
+		{
+			nMap[nCurRow][nCurCol + 1] = 1;
+			DepthFirstSearch(nCurRow, nCurCol + 1, 1);
+			nMap[nCurRow][nCurCol + 1] = 0;
+		}
+
+		if (CheckDiagonal(nCurRow, nCurCol))
+		{
+			nMap[nCurRow + 1][nCurCol + 1] = 2;
+			DepthFirstSearch(nCurRow + 1, nCurCol + 1, 2);
+			nMap[nCurRow + 1][nCurCol + 1] = 0;
+		}
+
+		if (CheckVert(nCurRow, nCurCol))
+		{
+			nMap[nCurRow + 1][nCurCol] = 3;
+			DepthFirstSearch(nCurRow + 1, nCurCol, 3);
+			nMap[nCurRow + 1][nCurCol] = 0;
+		}
+	}
+	else if (nDir == 3) //세로
+	{
+		if (CheckDiagonal(nCurRow, nCurCol))
+		{
+			nMap[nCurRow + 1][nCurCol + 1] = 2;
+			DepthFirstSearch(nCurRow + 1, nCurCol + 1, 2);
+			nMap[nCurRow + 1][nCurCol + 1] = 0;
+		}
+
+		if (CheckVert(nCurRow, nCurCol))
+		{
+			nMap[nCurRow + 1][nCurCol] = 3;
+			DepthFirstSearch(nCurRow + 1, nCurCol, 3);
+			nMap[nCurRow + 1][nCurCol] = 0;
+		}
+	}
+
+}
+
+
+
+int main()
+{
+	freopen("input.txt", "r", stdin);
+	cin >> N; 
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			cin >> nMap[i][j];
+			if (nMap[i][j] == 1) nMap[i][j] = -1;
+		}
+	}
+	nMap[0][0] = 1;
+	nMap[0][1] = 1;
+
+	for (int i = 1; i <= 2; i++)
+	{
+		if (i == 1 && nMap[0][2] == 0)
+		{
+			nMap[0][2] = i;
+			DepthFirstSearch(0, 2, i);
+			nMap[0][2] = 0;
+		}
+		else if (i == 2 && nMap[0][2] == 0 && nMap[1][2] == 0 && nMap[1][1] == 0)
+		{
+			nMap[1][2] = i;
+			DepthFirstSearch(1, 2, i);
+			nMap[1][2] = 0;
+		}
+	}
+	
+	cout << nAnswer << "\n";
+
+	return 0;
+}
