@@ -1,0 +1,203 @@
+//BOJ2636 치즈
+
+//문제
+//https://www.acmicpc.net/problem/2636
+
+//해설
+//
+
+/*
+0) 치즈 갯수
+1) 갇힌 공기 있는지 점검
+2) 벡터에 테두리인곳 담기
+3) 테두리 인곳 없애기 + 공기 있는곳 0으로 만들어주기
+*/
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
+#include <vector>
+#include <queue>
+using namespace std;
+int N, M;
+int nMap[101][101] = { 0 };
+bool bVisited[101][101] = { 0 };
+vector <pair<int, int>> Vec;
+int nTime = 0;
+int nCheeseCount = 0;
+int dx[] = { -1,0,1,0 }; //서북동남
+int dy[] = { 0,-1,0,1 };
+
+void InitVisited()
+{
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			bVisited[i][j] = false;
+		}
+	}
+}
+
+void BFS(int nRow, int nCol)
+{
+	queue <pair<int, int>> Que;
+	bVisited[nRow][nCol] = true;
+	Que.push(make_pair(nRow, nCol));
+	Vec.push_back(make_pair(nRow, nCol));
+	bool flag = true;
+
+	int nCurRow, nCurCol;
+	while (!Que.empty())
+	{
+		nCurRow = Que.front().first;
+		nCurCol = Que.front().second; 
+		Que.pop();
+
+		for (int i = 0; i < 4; i++)
+		{
+			int nNextRow = nCurRow + dy[i];
+			int nNextCol = nCurCol + dx[i];
+
+			if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= M)
+			{
+				flag = false;
+				continue;
+			}
+			
+			if (nMap[nNextRow][nNextCol] == 1 || bVisited[nNextRow][nNextCol] == true) continue;
+			Que.push(make_pair(nNextRow, nNextCol));
+			bVisited[nNextRow][nNextCol] = true;
+			Vec.push_back(make_pair(nNextRow, nNextCol));
+		}
+	}
+
+	if (flag == true)
+	{
+		int nVecSize = Vec.size();
+		for (int i = 0; i < nVecSize; i++)
+		{
+			nMap[Vec[i].first][Vec[i].second] = -1;
+		}
+	}
+
+
+}
+
+void Solve()
+{
+	int nVecRow, nVecCol;
+	int nEndCount = 0;
+	while (true)
+	{
+		nTime++;
+		nCheeseCount = 0;
+		nEndCount = 0;
+		InitVisited();
+		Vec.clear();
+
+		//치즈 갯수
+		for (int i = 0; i < N; i++)
+		{
+			for (int j = 0; j < M; j++)
+			{
+				if (nMap[i][j] == 1) nCheeseCount++;
+			}
+		}
+
+		//갇힌 공기 점검
+		for (int i = 0; i < N; i++)
+		{
+			for (int j = 0; j < M; j++)
+			{
+				if (nMap[i][j] == 0 && bVisited[i][j] == false)
+				{
+					Vec.clear();
+					BFS(i, j);
+					/*
+					for (int k = 0; k < 4; k++)
+					{
+						CheckAir(i, j,k);
+					}
+					*/
+					
+				}
+			}
+		}
+
+		Vec.clear();
+		//테두리 점검
+		for (int i = 0; i < N; i++)
+		{
+			for (int j = 0; j < M; j++)
+			{
+				if (nMap[i][j] == 0) continue;
+
+				for (int nIdx = 0; nIdx < 4; nIdx++)
+				{
+					int nNextRow = i + dy[nIdx];
+					int nNextCol = j + dx[nIdx];
+					if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= M) continue;
+					if (nMap[nNextRow][nNextCol] == 0)
+					{
+						Vec.push_back(make_pair(i, j));
+						break;
+					}
+				}
+			}
+		}
+
+		//테두리 없애기 + 갇힌 공기 0으로 롤백
+		for (int i = 0; i < N; i++)
+		{
+			for (int j = 0; j < M; j++)
+			{
+				if (nMap[i][j] == -1) nMap[i][j] = 0;
+			}
+		}
+
+		int nVecSize = Vec.size();
+		for (int i = 0; i < nVecSize; i++)
+		{
+			nVecRow = Vec[i].first;
+			nVecCol = Vec[i].second;
+			nMap[nVecRow][nVecCol] = 0;
+		}
+
+		//모두 삭제 되었는지 점검
+		for (int i = 0; i < N; i++)
+		{
+			for (int j = 0; j < M; j++)
+			{
+				if (nMap[i][j] == 1) nEndCount++;
+			}
+		}
+
+		if (nEndCount == 0)
+		{
+			cout << nTime << "\n";
+			cout << nCheeseCount << "\n";
+			return;
+		}
+
+
+	}
+}
+
+int main()
+{
+	freopen("input.txt", "r", stdin);
+	cin >> N >> M;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			cin >> nMap[i][j];
+		}
+	}
+
+	Solve();
+
+	return 0;
+}
+
+
