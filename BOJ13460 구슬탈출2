@@ -1,0 +1,157 @@
+//BOJ13460 구슬탈출2
+
+//문제
+//https://www.acmicpc.net/problem/13460
+
+//해설
+//https://yabmoons.tistory.com/229
+
+/*
+4방향 DFS 시전
+
+	- 각 방향대로 벽 혹은 구멍에 빠질 떄까지 이동
+	- red 구슬만 구슬에 빠질 때 Answer 갱신
+	- 블루 구슬 빠지면 return;
+	- 벽에 둘다 부딪쳤을 경우, 이동거리 계산해서 이동거리 적은쪽 진행방향 1차례 back
+	- 	- 다음 DFS는 진행했던 방향, 그 반대 방향은 생략
+
+*/
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
+using namespace std;
+int N, M;
+char cMap[11][11] = { 0 };
+int nRedRow, nRedCol, nBlueRow, nBlueCol;
+int nAnswer = 20;
+int dx[] = { -1,0,1,0 }; //서북동남
+int dy[] = { 0,-1,0,1 };
+
+int InverseDir(int nDir)
+{
+	if (nDir == 0) return 2;
+	else if (nDir == 1) return 3;
+	else if (nDir == 2) return 0;
+	else if (nDir == 3) return 1;
+}
+
+int  CalcDistance(int nCurRow, int nCurCol, int nNextRow, int nNextCol)
+{
+	int Distance = abs(nNextRow - nCurRow) + abs(nNextCol - nCurCol);
+	return Distance;
+}
+
+void DepthFirstSearch(int nCurRRow, int nCurRCol, int nCurBRow, int nCurBCol, int nCnt, int nDir)
+{
+	int nNextRRow, nNextRCol, nNextBRow, nNextBCol;
+	bool RedFlag = false;
+	bool BlueFlag = false;
+	if (nCnt > 10) return;
+	if (nCnt > nAnswer) return;
+
+	//빨간색 구슬 움직이기
+	nNextRRow = nCurRRow + dy[nDir];
+	nNextRCol = nCurRCol + dx[nDir];
+	while (true)
+	{
+		if (cMap[nNextRRow][nNextRCol] == '#') break;
+		else if (cMap[nNextRRow][nNextRCol] == 'O')
+		{
+			RedFlag = true; 
+			break;
+		}
+		nNextRRow = nNextRRow + dy[nDir];
+		nNextRCol = nNextRCol + dx[nDir];
+	}
+	nNextRRow = nNextRRow - dy[nDir];
+	nNextRCol = nNextRCol - dx[nDir];
+
+	//파란색 구슬 움직이기
+	nNextBRow = nCurBRow + dy[nDir];
+	nNextBCol = nCurBCol + dx[nDir];
+	while (true)
+	{
+		if (cMap[nNextBRow][nNextBCol] == '#') break;
+		else if (cMap[nNextBRow][nNextBCol] == 'O')
+		{
+			BlueFlag = true; 
+			break;
+		}
+		nNextBRow = nNextBRow + dy[nDir];
+		nNextBCol = nNextBCol + dx[nDir];
+	}
+	nNextBRow = nNextBRow - dy[nDir];
+	nNextBCol = nNextBCol - dx[nDir];
+
+	//정답 갱신
+	if (RedFlag == true && BlueFlag == false)
+	{
+		if (nCnt < nAnswer)
+		{
+			nAnswer = nCnt;
+			return;
+		}
+
+	}
+	else if (BlueFlag == true) return;
+
+	//둘 다 벽 만났을 경우 보정
+	if (nNextRRow == nNextBRow && nNextRCol == nNextBCol)
+	{
+		int Rdist = CalcDistance(nCurRRow, nCurRCol, nNextRRow, nNextRCol);
+		int Bdist = CalcDistance(nCurBRow, nCurBCol, nNextBRow, nNextBCol);
+
+		if (Rdist > Bdist)
+		{
+			nNextRRow = nNextRRow - dy[nDir];
+			nNextRCol = nNextRCol - dx[nDir];
+		}
+		else
+		{
+			nNextBRow = nNextBRow - dy[nDir];
+			nNextBCol = nNextBCol - dx[nDir];
+		}
+	}
+
+	//다음단계
+	for (int i = 0; i < 4; i++)
+	{
+		if (i == nDir) continue;
+		if (i == InverseDir(nDir)) continue;
+		DepthFirstSearch(nNextRRow, nNextRCol, nNextBRow, nNextBCol, nCnt+1, i);
+	}
+}
+
+int main()
+{
+	freopen("input.txt", "r", stdin);
+	cin >> N >> M;
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			cin >> cMap[i][j];
+			if (cMap[i][j] == 'B')
+			{
+				nBlueRow = i;
+				nBlueCol = j;
+			}
+			else if (cMap[i][j] == 'R')
+			{
+				nRedRow = i;
+				nRedCol = j;
+			}
+		}
+	}
+
+	for (int i = 0; i < 4; i++)
+	{
+		DepthFirstSearch(nRedRow, nRedCol, nBlueRow, nBlueCol, 1, i);
+	}
+
+	if (nAnswer == 20) cout << "-1" << "\n";
+	else cout << nAnswer << "\n";
+	
+	return 0;
+}
