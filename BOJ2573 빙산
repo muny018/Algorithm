@@ -1,0 +1,158 @@
+//BOJ2573 빙산
+
+//문제
+//https://www.acmicpc.net/problem/2573
+
+//해설
+//
+
+/*
+Copymap 생성
+ - 상하좌우 0 갯수만큼 줄어들기
+ - BFS로 라벨링 작업,
+ - 2덩이 이상이면 출력 or 다 녹았냐? 0 출력
+ */
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
+#include <queue>
+using namespace std; 
+queue <pair<int, int>> Que;
+int nMap[301][301] = { 0 };
+int nCopyMap[301][301] = { 0 };
+int nLabelMap[301][301] = { 0 };
+int N, M;
+int nAnswer = 0;
+int dx[] = { -1,0,1,0 }; //서북동남
+int dy[] = { 0,-1,0,1 };
+
+void BFS(int nRow, int nCol, int nNum)
+{
+	int nCurRow, nCurCol, nNextRow, nNextCol;
+	nLabelMap[nRow][nCol] = nNum;
+	Que.push(make_pair(nRow, nCol));
+	
+	while (!Que.empty())
+	{
+		nCurRow = Que.front().first;
+		nCurCol = Que.front().second;
+		Que.pop();
+
+		for (int nIdx = 0; nIdx < 4; nIdx++)
+		{
+		    nNextRow = nCurRow + dy[nIdx];
+			nNextCol = nCurCol + dx[nIdx];
+			if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= M) continue;
+			if (nLabelMap[nNextRow][nNextCol] >= 1) continue;
+
+			if (nMap[nNextRow][nNextCol] >= 1)
+			{
+				nLabelMap[nNextRow][nNextCol] = nNum;
+				Que.push(make_pair(nNextRow, nNextCol));
+			}
+		}
+	}
+}
+
+void IceBreaking(int nCurRow, int nCurCol)
+{
+	int nIceCount = 0;
+	for (int nIdx = 0; nIdx < 4; nIdx++)
+	{
+		int nNextRow = nCurRow + dy[nIdx];
+		int nNextCol = nCurCol + dx[nIdx];
+		
+		if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= M) continue;
+		if (nMap[nNextRow][nNextCol] >= 1) continue;
+		nIceCount++;
+	}
+
+	nCopyMap[nCurRow][nCurCol] -= nIceCount;
+	if (nCopyMap[nCurRow][nCurCol] < 0) nCopyMap[nCurRow][nCurCol] = 0;
+}
+
+void Solve()
+{
+	int nLabelNum = 0;
+	int nTime = 0;
+
+	while (true)
+	{
+		nTime++;
+
+		//CopyMap
+		for (int i = 0; i < N; i++)
+		{
+			for (int j = 0; j < M; j++)
+			{
+				nCopyMap[i][j] = nMap[i][j];
+				nLabelMap[i][j] = 0;
+			}
+		}
+		
+		//빙산제거
+		for (int i = 0; i < N; i++)
+		{
+			for (int j = 0; j < M; j++)
+			{
+				if (nMap[i][j] == 0) continue;
+				IceBreaking(i, j);
+			}
+		}
+
+		//
+		for (int i = 0; i < N; i++)
+		{
+			for (int j = 0; j < M; j++)
+			{
+				nMap[i][j] = nCopyMap[i][j];				
+			}
+		}
+
+		//라벨링
+		nLabelNum = 0;
+		for (int i = 0; i < N; i++)
+		{
+			for (int j = 0; j < M; j++)
+			{
+				if (nMap[i][j] == 0 || nLabelMap[i][j] != 0) continue;
+				nLabelNum++;
+				BFS(i, j, nLabelNum);
+				
+			}
+		}
+		
+		//빙산영역 갯수
+		if (nLabelNum >= 2)
+		{
+			cout << nTime << "\n";
+			return;
+		}
+		else if (nLabelNum == 0)
+		{
+			cout << 0 << "\n";
+			return;
+		}
+
+
+	}
+
+}
+
+int main()
+{
+	freopen("input.txt", "r", stdin);
+	cin >> N >> M;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			cin >> nMap[i][j];
+		}
+	}
+
+	Solve();
+
+
+	return 0;
+}
