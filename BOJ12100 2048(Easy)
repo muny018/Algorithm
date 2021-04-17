@@ -1,0 +1,238 @@
+//BOJ12100 2048(Easy)
+
+//문제
+//https://www.acmicpc.net/problem/12100
+
+//해설
+// 
+
+/*
+1)순열조합으로 4방향 5번 뽑는다. 중복방향 5번도 되게끔한다.
+
+2) 4방향에 따라서, Vector에 집어넣고 본인, 본인+1 상태비교
+	값이 똑으면 Merge, 아니면 평행맵에 저장
+
+3) 평행맵을 방향에 맞게 저장
+
+4) 5번 끝났을 떄 가장 큰값 출력,
+*/
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
+#include <vector>
+using namespace std; 
+
+int nMap[21][21] = { 0 };
+int nInputMap[21][21] = { 0 };
+vector <int> Vec;
+int N; 
+int nAnswer = 0;
+int dx[] = { -1,0,1,0 }; //서북동남
+int dy[] = { 0,-1,0,1 }; 
+int nDirMap[6] = { 0 };
+int nMoveMap[21] = { 0 };
+
+void Merge()
+{
+	int nVecSize = Vec.size();
+	if (nVecSize == 0) return;
+
+	int nIdx = 0;
+	for (int i = 0; i < N; i++)
+	{
+		nMoveMap[i] = 0;
+	}
+	
+	int nCurNum, nNextNum;
+	for (int i = 0; i < nVecSize; i++)
+	{
+		if (i == nVecSize - 1)
+		{
+			nMoveMap[nIdx] = Vec[i];
+			break;
+		}
+		nCurNum = Vec[i];
+		nNextNum = Vec[i + 1];
+		if (nCurNum == nNextNum)
+		{
+			nMoveMap[nIdx] = nCurNum + nNextNum;
+			nIdx++;
+			i++;
+		}
+		else
+		{
+			nMoveMap[nIdx] = nCurNum;
+			nIdx++;
+		}
+	}
+
+}
+
+void Solve()
+{
+	
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			nMap[i][j] = nInputMap[i][j];
+		}
+	}
+
+	int nCurDir;
+	for (int nIndex = 0; nIndex < 5; nIndex++)
+	{
+		Vec.clear();
+		nCurDir = nDirMap[nIndex];
+
+		if (nCurDir == 0) //서
+		{
+			for (int nRow = 0; nRow < N; nRow++)
+			{
+				Vec.clear();
+				for (int nCol = 0; nCol < N; nCol++)
+				{
+					if (nMap[nRow][nCol] == 0) continue;
+					Vec.push_back(nMap[nRow][nCol]);
+				}
+
+				int nVecSize = Vec.size();
+				if (nVecSize == 0) continue;
+
+				Merge();
+
+				for (int nCol = 0; nCol < N; nCol++)
+				{
+					nMap[nRow][nCol] = nMoveMap[nCol];
+				}
+			}
+
+		}
+		else if (nCurDir == 1) //북
+		{
+			for (int nCol = 0; nCol < N; nCol++)
+			{
+				Vec.clear();
+				for (int nRow = 0; nRow < N; nRow++)
+				{
+					if (nMap[nRow][nCol] == 0) continue;
+					Vec.push_back(nMap[nRow][nCol]);
+				}
+
+				int nVecSize = Vec.size();
+				if (nVecSize == 0) continue;
+
+				Merge();
+
+				for (int nRow = 0; nRow < N; nRow++)
+				{
+					nMap[nRow][nCol] = nMoveMap[nRow];
+				}
+			}
+
+		}
+		else if (nCurDir == 2) //동
+		{
+			for (int nRow = 0; nRow < N; nRow++)
+			{
+				Vec.clear();
+				for (int nCol = N-1; nCol >=0 ; nCol--)
+				{
+					if (nMap[nRow][nCol] == 0) continue;
+					Vec.push_back(nMap[nRow][nCol]);
+				}
+
+				int nVecSize = Vec.size();
+				if (nVecSize == 0) continue;
+
+				Merge();
+
+				int Idx = 0;
+				for (int nCol = N - 1; nCol >= 0; nCol--)
+				{
+					nMap[nRow][nCol] = nMoveMap[Idx];
+					Idx++;
+				}
+			}
+
+		}
+		else if (nCurDir == 3) //남
+		{
+			for (int nCol = 0; nCol < N; nCol++)
+			{
+				Vec.clear();
+				for (int nRow = N-1; nRow >= 0; nRow--)
+				{
+					if (nMap[nRow][nCol] == 0) continue;
+					Vec.push_back(nMap[nRow][nCol]);
+				}
+
+
+				int nVecSize = Vec.size();
+				if (nVecSize == 0) continue;
+
+				Merge();
+
+				int Idx = 0;
+				for (int nRow = N - 1; nRow >= 0; nRow--)
+				{
+					nMap[nRow][nCol] = nMoveMap[Idx];
+					Idx++;
+				}
+			}
+		}
+	}
+
+	//최대값 찾기
+	int nMax = 0;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			if (nMap[i][j] > nMax) nMax = nMap[i][j];
+		}
+	}
+
+	if (nMax > nAnswer)
+	{
+		nAnswer = nMax;
+	}
+
+}
+
+void DepthFirstSearch(int nIndex)
+{
+	if (nIndex > 4)
+	{
+		Solve();
+		return;
+	}
+
+	for (int nDir = 0; nDir < 4; nDir++)
+	{
+		nDirMap[nIndex] = nDir;
+		DepthFirstSearch(nIndex + 1);
+	}
+}
+
+int main()
+{
+	freopen("input.txt", "r", stdin);
+	cin >> N; 
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			cin >> nInputMap[i][j];
+		}
+	}
+
+	DepthFirstSearch(0);
+
+	cout << nAnswer << "\n";
+
+	return 0;
+
+
+}
