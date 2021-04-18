@@ -1,0 +1,128 @@
+//BOJ20055 컨베이어 벨트 위의 로봇 
+
+//문제
+// https://www.acmicpc.net/problem/20055
+
+//해설
+// 
+
+/*
+- 첫쨰칸 로봇올린다. (내구도 있을시)
+ - 벨트 한칸 움직임
+ - N번칸에 로봇있냐? 있으면 로봇 내린다.
+ - N부터 1 까지 로봇 한칸씩 전진
+ */
+
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <iostream>
+using namespace std;
+
+struct Info
+{
+	int nValue;
+	bool IsRobot;
+};
+
+Info nMap[202] = { 0 };
+Info nCopyMap[202] = { 0 };
+int N, K;
+
+bool Check()
+{
+	int nCount = 0;
+	for (int i = 0; i < 2 * N; i++)
+	{
+		if (nMap[i].nValue == 0) nCount++;
+	}
+
+	if (nCount >= K) return true;
+	else return false;
+}
+
+void MoveRobot()
+{
+	
+	//상면 마지막칸 로봇 내림
+	if (nMap[N - 1].IsRobot == true) nMap[N - 1].IsRobot = false;
+
+	for (int i = N - 2; i >= 0; i--)
+	{
+		if (nMap[i].IsRobot == true && nMap[i + 1].IsRobot == false && nMap[i + 1].nValue > 0)
+		{
+			nMap[i + 1].IsRobot = true;
+			nMap[i + 1].nValue--;
+
+			nMap[i].IsRobot = false;
+		}
+	}
+
+	//첫재칸 로봇 올림
+	if (nMap[0].nValue > 0 && nMap[0].IsRobot == false)
+	{
+		nMap[0].IsRobot = true;
+		nMap[0].nValue--;
+	}
+
+	//상면 마지막칸 로봇 내림
+	if (nMap[N - 1].IsRobot == true) nMap[N - 1].IsRobot = false;
+
+
+}
+
+
+void MoveBelt()
+{
+	for (int i = 0; i < 2 * N; i++)
+	{
+		nCopyMap[i] = nMap[i];
+	}
+
+	for (int i = 2 * N - 1; i >= 1; i--)
+	{
+		nMap[i] = nCopyMap[i - 1];
+	}
+
+	nMap[0] = nCopyMap[2 * N - 1];
+	nMap[0].IsRobot = false;
+}
+
+void Solve()
+{
+	int nTime = 0;
+	while (true)
+	{
+		nTime++;
+
+		//벨트 움직임
+		MoveBelt();
+
+		//로봇 움직이기
+		MoveRobot();
+
+
+		//Check
+		if (Check() == true)
+		{
+			cout << nTime << "\n";
+			return;
+		}
+	}
+
+}
+
+int main()
+{
+
+	freopen("input.txt", "r", stdin);
+	cin >> N >> K;
+	for (int i = 0; i < 2 * N; i++)
+	{
+		cin >> nMap[i].nValue;
+		nMap[i].IsRobot = false;
+	}
+
+	Solve();
+
+	return 0;
+}
