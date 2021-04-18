@@ -1,0 +1,236 @@
+//BOJ210418 마법사 상어와 파이어볼
+
+//문제
+//https://www.acmicpc.net/problem/20056
+
+//해설
+//
+
+/*
+0) 입력 Que 에 넣기
+
+Vec 초기화
+
+1) Que에서 뽑아서 자신의 방향, 속도만큼 이동 Vec 넣기
+
+2) Vec에서 뽑아서
+
+  파이어볼 해체
+	4개로 나뉘어짐
+	- 질량 : 합쳐진 파이어볼의 합/5
+	- 속력 : 합쳐진 파이어볼의 합/합쳐진 갯수
+	- 방향 : 합쳐진 파이어볼의 방향이 모두 홀수 or 모두 짝수 : 0 2 4 6,
+		else 1,3,5,7
+
+다시 Que에 넣기
+
+3) K번 이동 후 남아있는 파이어볼 질량 합
+*/
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
+#include <vector>
+#include <queue>
+using namespace std;
+
+struct Info
+{
+	int nRow;
+	int nCol;
+	int nWeight;
+	int nSpeed;
+	int nDir;
+};
+
+int N, M, K;
+vector <Info> Vec[52][52];
+queue <Info> Que;
+int dx[] = { 0,1,1,1,0,-1,-1,-1 };
+int dy[] = { -1,-1,0,1,1,1,0,-1 };
+
+void ImpactFireBall()
+{
+	Info Next;
+	int nDirIndex;
+	int nSumWeight = 0;
+	int nSumSpeed = 0;
+	int Even = 0;
+	int Odd = 0;
+	
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			int nVecSize = Vec[i][j].size();
+			if (nVecSize == 0) continue;
+			else if (nVecSize == 1)
+			{
+				Next = Vec[i][j].at(0);
+				Que.push(Next);
+			}
+			else if (nVecSize >= 2)
+			{
+				nSumSpeed = 0;
+				nSumWeight = 0;
+				Even = 0;
+				Odd = 0;
+				for (int VecIdx = 0; VecIdx < nVecSize; VecIdx++)
+				{
+					nSumWeight += Vec[i][j].at(VecIdx).nWeight;
+					nSumSpeed += Vec[i][j].at(VecIdx).nSpeed;
+
+					if (Vec[i][j].at(VecIdx).nDir % 2 == 0) //짝수
+					{
+						Even++;
+					}
+					else if (Vec[i][j].at(VecIdx).nDir % 2 == 1) //홀수
+					{
+						Odd++;
+					}
+				}
+
+				Next.nRow = Vec[i][j].at(0).nRow;
+				Next.nCol = Vec[i][j].at(0).nCol;
+				Next.nWeight = nSumWeight / 5;
+				if (Next.nWeight == 0) continue;
+				Next.nSpeed = nSumSpeed / nVecSize;
+
+				if (Even == 0 || Odd == 0)
+				{
+					nDirIndex = 0;
+					for (int nIdx = 0; nIdx < 4; nIdx++)
+					{
+						Next.nDir = nDirIndex;
+						Que.push(Next);
+
+						nDirIndex += 2;
+
+					}
+				}
+				else if (Even > 0 && Odd > 0)
+				{
+					nDirIndex = 1;
+					for (int nIdx = 0; nIdx < 4; nIdx++)
+					{
+						Next.nDir = nDirIndex;
+						Que.push(Next);
+
+						nDirIndex += 2;
+
+					}
+				}
+			}
+		}
+	}
+
+
+}
+
+void MoveFireBall()
+{
+	int nQueSize = Que.size();
+	Info Cur, Next;
+	int nNextRow, nNextCol;
+	int nCurRow, nCurCol, nCurWeight, nCurSpeed, nCurDir;
+	int CalcSpeed;
+
+	for (int QueSize = 0; QueSize < nQueSize; QueSize++)
+	{
+		Cur = Que.front();
+		Que.pop();
+		nCurRow = Cur.nRow;
+		nCurCol = Cur.nCol;
+		nCurWeight = Cur.nWeight;
+		nCurSpeed = Cur.nSpeed;
+		nCurDir = Cur.nDir;
+
+		nNextRow = nCurRow;
+		nNextCol = nCurCol;
+
+		CalcSpeed = nCurSpeed % N;
+
+		for (int nMove = 0; nMove < CalcSpeed; nMove++)
+		{
+			nNextRow = nNextRow + dy[nCurDir];
+			nNextCol = nNextCol + dx[nCurDir];
+
+			if (nNextRow >= N) nNextRow = 0;
+			else if (nNextRow < 0) nNextRow = N - 1;
+			if (nNextCol >= N) nNextCol = 0;
+			else if (nNextCol < 0) nNextCol = N - 1;
+		}
+		
+		Next.nRow = nNextRow;
+		Next.nCol = nNextCol;
+		Next.nWeight = nCurWeight;
+		Next.nSpeed = nCurSpeed;
+		Next.nDir = nCurDir;
+		
+		Vec[nNextRow][nNextCol].push_back(Next);
+	}
+	
+}
+
+void InitVec()
+{
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			Vec[i][j].clear();
+		}
+	}
+}
+
+void CheckMass()
+{
+	int nWeight = 0;
+
+	while (!Que.empty())
+	{
+		nWeight += Que.front().nWeight;
+		Que.pop();
+	}
+
+	cout << nWeight << "\n";
+}
+
+void Solve()
+{
+	for (int nTime = 0; nTime < K; nTime++)
+	{
+		InitVec();
+
+		//파이어볼 이동
+		MoveFireBall();
+
+		//파이어볼 충돌
+		ImpactFireBall();
+	}
+
+	//질량 체크
+	CheckMass();
+}
+
+int main()
+{
+	freopen("input.txt", "r", stdin);
+	cin >> N >> M >> K;
+	int A[6];
+	Info Input;
+	for (int i = 0; i < M; i++)
+	{
+		cin >> A[0] >> A[1] >> A[2] >> A[3] >> A[4];
+		Input.nRow = A[0] - 1;
+		Input.nCol = A[1] - 1;
+		Input.nWeight = A[2];
+		Input.nSpeed = A[3];
+		Input.nDir = A[4];
+
+		Que.push(Input);
+	}
+
+	Solve();
+
+	return 0;
+}
