@@ -1,0 +1,265 @@
+//SWEA5656 벽돌깨기
+
+//문제
+//https://swexpertacademy.com/main/code/problem/problemDetail.do?contestProbId=AWXRQm6qfL0DFAUo
+
+//해설
+//
+
+/*
+중복순열조합으로 구슬 떨어뜨릴 곳 선정
+
+	for
+	- bVisited 초기화
+	-구슬 떨어뜨릴곳 낙하해서 BFS 탄다
+	- nMap[nRow][nCol] 숫자만큼 주변 조회
+		- nMap = 0 스킵, bVisited = true면 스킵
+	- 방문한곳은 bVisited = ture
+
+	- 다 방문하고 bVisited = true 인곳 0으로 만들어줌 (Count 세기)
+
+	- Que로 내리기
+	- 최대값 갱신
+*/
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
+#include <queue>
+#include <cstring>
+using namespace std; 
+int T, N, W, H;
+int nMap[16][13] = { 0 };
+int nInputMap[16][13] = { 0 };
+bool bVisited[16][13] = { false };
+int nAnswer = 99999999;
+int nBall[5] = { 0 };
+int dx[] = {0,1,0,-1}; //북동남서
+int dy[] = { -1,0,1,0 };
+
+void Down()
+{
+	for (int j = 0; j < W; j++)
+	{
+		queue <int> DownQue;
+		for (int i = H - 1; i >= 0; i--)
+		{
+			if (nMap[i][j] == 0) continue;
+
+			DownQue.push(nMap[i][j]);
+			nMap[i][j] = 0;
+		}
+
+		int nQueSize = DownQue.size();
+		int nIndex = H - 1;
+		int nNum;
+		for (int i = 0; i < nQueSize; i++)
+		{
+			nNum = DownQue.front();
+			DownQue.pop();
+			nMap[nIndex][j] = nNum;
+			nIndex--;
+		}
+	}
+
+
+}
+
+void BreakBlock()
+{
+	for (int i = 0; i < H; i++)
+	{
+		for (int j = 0; j < W; j++)
+		{
+			if (bVisited[i][j] == true)
+			{
+				nMap[i][j] = 0;
+			}
+		}
+	}
+
+}
+
+void BFS(int nRow, int nCol)
+{
+	queue <pair<int, int>> Que;
+	Que.push(make_pair(nRow, nCol));
+	bVisited[nRow][nCol] = true;
+
+	int nCurRow, nCurCol, nNextRow, nNextCol, nDistance;
+	while (!Que.empty())
+	{
+		nCurRow = Que.front().first;
+		nCurCol = Que.front().second;
+		Que.pop();
+
+		nDistance = nMap[nCurRow][nCurCol] - 1;
+
+		/*
+		for (int nIdx = 0; nIdx < 4; nIdx++)
+		{
+			for (int i = 1; i <= nDistance; i++)
+			{
+				nNextRow = nCurRow + dy[nIdx] * i;
+				nNextCol = nCurCol + dx[nIdx] * i;
+
+				if (nNextRow < 0 || nNextRow >= H || nNextCol < 0 || nNextCol >= W) break;
+				if (nMap[nNextRow][nNextCol] == 0 ) continue;
+
+				Que.push(make_pair(nNextRow, nNextCol));
+			}
+		}
+		nMap[nCurRow][nCurCol] = 0;
+		*/
+
+		
+		for (int i = 1; i <= nDistance; i++)
+		{
+			for (int nIdx = 0; nIdx < 4; nIdx++)
+			{
+				nNextRow = nCurRow + dy[nIdx] * i;
+				nNextCol = nCurCol + dx[nIdx] * i;
+
+				if (nNextRow < 0 || nNextRow >= H || nNextCol < 0 || nNextCol >= W) continue;
+				if (nMap[nNextRow][nNextCol] == 0 || bVisited[nNextRow][nNextCol]) continue;
+
+				bVisited[nNextRow][nNextCol] = true;
+				Que.push(make_pair(nNextRow, nNextCol));
+			}
+		}
+		
+	}
+}
+
+void Solve()
+{
+	if (nAnswer == 0) return;
+
+	for (int i = 0; i < H; i++)
+	{
+		for (int j = 0; j < W; j++)
+		{
+			nMap[i][j] = nInputMap[i][j];
+		}
+	}
+
+	if (nBall[0] == 0 && nBall[1] == 2 && nBall[2] == 2)
+	{
+		int nStop_a = 0;
+	}
+
+	int ColDropPoint, RowDropPoint;
+	int nCount = 0;
+	for (int nIndex = 0; nIndex < N; nIndex++)
+	{
+		int ColDropPoint = nBall[nIndex];
+
+		RowDropPoint = 20;
+		for (int i = 0; i < H; i++)
+		{
+			if (nMap[i][ColDropPoint] != 0)
+			{
+				RowDropPoint = i;
+				break;
+			}
+		}
+
+		if (RowDropPoint == 20) break;
+
+		
+		for (int i = 0; i < H; i++)
+		{
+			for (int j = 0; j < W; j++)
+			{
+				bVisited[i][j] = false;
+			}
+		}
+		
+
+		BFS(RowDropPoint, ColDropPoint);
+
+		//벽돌 제거 후 (카운트 해줘야함)
+		BreakBlock();
+
+		//내려주기
+		Down();
+
+	}
+
+
+	for (int i = 0; i < H; i++)
+	{
+		for (int j = 0; j < W; j++)
+		{
+			if (nMap[i][j] > 0) nCount++;
+		}
+	}
+
+	if (nCount == 0) nAnswer = 0;
+
+	if (nAnswer > nCount)
+	{
+		nAnswer = nCount;
+	}
+}
+
+void DepthFirstSearch(int nIndex)
+{
+	if (nIndex >= N)
+	{
+		Solve();
+		return;
+	}
+
+	for (int i = 0; i < W; i++)
+	{
+		nBall[nIndex] = i;
+		DepthFirstSearch(nIndex + 1);
+	}
+
+}
+
+void Init()
+{
+	nAnswer = 99999999;
+	for (int i = 0; i < H; i++)
+	{
+		for (int j = 0; j < W; j++)
+		{
+			nMap[i][j] = 0;
+			nInputMap[i][j] = 0;
+			bVisited[i][j] = 0;
+		}
+	}
+
+	for (int i = 0; i < 5; i++) nBall[i] = 0;
+
+}
+
+int main()
+{
+	freopen("input.txt", "r", stdin);
+	cin >> T;
+	for (int nTestCase = 1; nTestCase <= T; nTestCase++)
+	{
+		cin >> N >> W >> H;
+		Init();
+
+		for (int i = 0; i < H; i++)
+		{
+			for (int j = 0; j < W; j++)
+			{
+				cin >> nInputMap[i][j];
+			}
+		}
+
+		//풀이
+
+		DepthFirstSearch(0);
+
+		cout << "#" << nTestCase << " " << nAnswer << "\n";
+	}
+
+	
+
+	return 0;
+}
