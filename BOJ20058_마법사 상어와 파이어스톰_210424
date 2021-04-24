@@ -1,0 +1,239 @@
+//BOJ20058 마법사 상어와 파이어스톰
+
+//문제
+//https://www.acmicpc.net/problem/20058
+
+//해설
+//
+
+/*
+Input, Q번만큼
+	- 2^L 크기만큼 내부 회전
+		-for for 돌리는데, 맵크기 / 2^L 하면 돌릴 갯수 나옴
+		-Rotate 후 변 길이가 2이하가 될때까지 돌리기
+	- 3개 이상 인접 하지 않으면 -1
+
+Q번만큼 돌리고 남아있는 얼음의 양
+	가장 큰 얼음 덩어리 크기
+*/
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
+#include <queue>
+using namespace std; 
+
+int nMap[65][65] = { 0 };
+int nCopyMap[65][65] = { 0 };
+bool bVisited[65][65] = { false };
+int N, Q, L, nNum;
+int MapSize = 1, LSize = 1;
+int dx[] = {0,1,0,-1}; //북동남서
+int dy[] = { -1,0,1,0 };
+int nIceCount = 0;
+int nIceArea = 0;
+int Llist[1001] = { 0 };
+
+void BFS(int nRow, int nCol)
+{
+	queue <pair<int, int>> Que;
+	Que.push(make_pair(nRow, nCol));
+	int nArea = 0;
+
+	int nNextRow, nNextCol, nCurRow, nCurCol;
+	while (!Que.empty())
+	{
+		nCurRow = Que.front().first;
+		nCurCol = Que.front().second;
+		Que.pop();
+
+		for (int i = 0; i < 4; i++)
+		{
+			nNextRow = nCurRow + dy[i];
+			nNextCol = nCurCol + dx[i];
+			if (nNextRow < 0 || nNextRow >= MapSize || nNextCol < 0 || nNextCol >= MapSize || bVisited[nNextRow][nNextCol]) continue;
+			if (nMap[nNextRow][nNextCol] >=1)
+			{
+				nArea++;
+				bVisited[nNextRow][nNextCol] = true;
+				Que.push(make_pair(nNextRow, nNextCol));
+			}
+		}
+		
+	}
+
+	if (nArea > nIceArea) nIceArea = nArea;
+
+}
+
+void Rotate(int nStartRow, int nStartCol, int LDistance)
+{
+	//북
+	for (int i = 0; i < LDistance; i++)
+	{
+		nMap[nStartRow][nStartCol + i] = nCopyMap[nStartRow + LDistance - 1 - i][nStartCol];
+	}
+
+	//동
+	for (int i = 0; i < LDistance; i++)
+	{
+		nMap[nStartRow + i][nStartCol + LDistance - 1] = nCopyMap[nStartRow][nStartCol + i];
+	}
+
+	//남
+	for (int i = 0; i < LDistance; i++)
+	{
+		nMap[nStartRow + LDistance - 1][nStartCol + i] = nCopyMap[nStartRow + LDistance - 1 - i][nStartCol + LDistance - 1];
+	}
+
+	//서
+	for (int i = 0; i < LDistance; i++)
+	{
+		nMap[nStartRow + i][nStartCol] = nCopyMap[nStartRow + LDistance - 1][nStartCol + i];
+	}
+
+	//다음 시퀀스
+	if (LDistance>2)
+	{
+		Rotate(nStartRow + 1, nStartCol + 1, LDistance - 2);
+	}
+	else if (LDistance <= 2)
+	{
+		return;
+	}
+
+}
+
+void FireStorm()
+{
+	//복사
+	for (int i = 0; i < MapSize; i++)
+	{
+		for (int j = 0; j < MapSize; j++)
+		{
+			nCopyMap[i][j] = nMap[i][j];
+		}
+	}
+
+	for (int i = 0; i < nNum; i++)
+	{
+		for (int j = 0; j < nNum; j++)
+		{
+
+			int nStartRow = i * LSize;
+			int nStartCol = j * LSize;
+			Rotate(nStartRow, nStartCol, LSize);
+		}
+	}
+	
+}
+
+void IceCheck()
+{
+	//복사
+	for (int i = 0; i < MapSize; i++)
+	{
+		for (int j = 0; j < MapSize; j++)
+		{
+			nCopyMap[i][j] = nMap[i][j];
+		}
+	}
+
+
+	int nCount = 0;
+	int nNextRow, nNextCol; 
+	for (int i = 0; i < MapSize; i++)
+	{
+		for (int j = 0; j < MapSize; j++)
+		{
+			if (nCopyMap[i][j] == 0) continue;
+
+			nCount = 0;
+			for (int nIdx = 0; nIdx < 4; nIdx++)
+			{		
+				nNextRow = i + dy[nIdx];
+				nNextCol = j + dx[nIdx];
+				if (nNextRow < 0 || nNextRow >= MapSize || nNextCol < 0 || nNextCol >= MapSize) continue;
+				if (nCopyMap[nNextRow][nNextCol]) nCount++;
+			}
+			if (nCount < 3) nMap[i][j]--;
+		}
+	}
+
+}
+
+void Solve()
+{
+
+	for (int nTime = 0; nTime < Q; nTime++)
+	{
+		L = Llist[nTime];
+		LSize = 1;
+
+		for (int i = 0; i < L; i++)
+		{
+			LSize *= 2;
+		}
+		
+		nNum = MapSize / LSize;
+
+		FireStorm();
+
+		IceCheck();
+
+	}
+
+	//남은 얼음양 계산
+	for (int i = 0; i < MapSize; i++)
+	{
+		for (int j = 0; j < MapSize; j++)
+		{
+			nIceCount += nMap[i][j];
+		}
+	}
+
+
+	//가장 큰 덩어리 계산
+	for (int i = 0; i < MapSize; i++)
+	{
+		for (int j = 0; j < MapSize; j++)
+		{
+			if (bVisited[i][j] == true || nMap[i][j] <=0) continue;
+			bVisited[i][j] = true;
+			BFS(i, j);
+		}
+	}
+
+
+}
+
+int main()
+{
+	freopen("input.txt", "r", stdin);
+	cin >> N >> Q;
+
+	for (int i = 0; i < N; i++)
+	{
+		MapSize *= 2;
+	}
+
+	for (int i = 0; i < MapSize; i++)
+	{
+		for (int j = 0; j < MapSize; j++)
+		{
+			cin >> nMap[i][j];
+		}
+	}
+
+	for (int i = 0; i < Q; i++)
+	{
+		cin >> Llist[i];
+	}
+	
+	Solve();
+
+	if (nIceArea > 0) nIceArea++;
+	cout << nIceCount << "\n";
+	cout << nIceArea << "\n";
+
+	return 0;
+}
