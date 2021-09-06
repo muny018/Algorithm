@@ -1,0 +1,236 @@
+//BOJ 21610 마법사 상어와 비바라기
+
+//문제
+//https://www.acmicpc.net/problem/21610
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+#define MAX 52
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+struct InputInfo
+{
+	int nDir;
+	int nMove;
+};
+
+int nMap[MAX][MAX] = { 0 };
+int nCopyMap[MAX][MAX] = { 0 };
+bool bVisited[MAX][MAX] = { false };
+int N, M, d, s;
+int dx[] = {-1,-1,0,1,1,1,0,-1};
+int dy[] = {0,-1,-1,-1,0,1,1,1};
+
+int ddx[] = {-1,1,1,-1};
+int ddy[] = { -1,-1,1,1 };
+
+vector <InputInfo> InputVec;
+vector <pair<int, int>> CloudInfo;
+int nDirInfo;
+int nMoveInfo;
+int nAnswer = 0;
+
+void CopyMap()
+{
+	for (int i = 1; i <= N; i++)
+	{
+		for (int j = 1; j <= N; j++)
+		{
+			bVisited[i][j] = 0;
+		}
+	}
+
+}
+
+
+void MoveCloud()
+{
+	int nVecSize = CloudInfo.size();
+	int nRow, nCol, nNextRow, nNextCol;
+
+	for (int i = 0; i < nVecSize; i++)
+	{
+		nRow = CloudInfo[i].first;
+		nCol = CloudInfo[i].second;
+
+		nNextRow = nRow + dy[nDirInfo];
+		nNextCol = nCol + dx[nDirInfo];
+
+		if (nNextRow < 1) nNextRow = N;
+		else if (nNextRow > N) nNextRow = 1;
+
+		if (nNextCol < 1) nNextCol = N;
+		else if (nNextCol > N) nNextCol = 1;
+
+		for (int Shift = 0; Shift < nMoveInfo - 1; Shift++)
+		{
+			nNextRow = nNextRow + dy[nDirInfo];
+			nNextCol = nNextCol + dx[nDirInfo];
+
+			if (nNextRow < 1) nNextRow = N;
+			else if (nNextRow > N) nNextRow = 1;
+
+			if (nNextCol < 1) nNextCol = N;
+			else if (nNextCol > N) nNextCol = 1;
+		}
+
+
+		CloudInfo[i].first = nNextRow;
+		CloudInfo[i].second = nNextCol;
+
+		bVisited[nNextRow][nNextCol] = true;
+	}
+}
+
+void Raining()
+{
+	int nVecSize = CloudInfo.size();
+	int nRow, nCol;
+
+	for (int i = 0; i < nVecSize; i++)
+	{
+		nRow = CloudInfo[i].first;
+		nCol = CloudInfo[i].second;
+
+		nMap[nRow][nCol]++;
+	}
+
+}
+
+void NeighborRaining()
+{
+	int nVecSize = CloudInfo.size();
+	int nRow, nCol, nNextRow, nNextCol;
+	int nCount = 0;
+
+	for (int i = 1; i <= N; i++)
+	{
+		for (int j = 1; j <= N; j++)
+		{
+			nCopyMap[i][j] = nMap[i][j];
+		}
+	}
+
+
+	for (int i = 0; i < nVecSize; i++)
+	{
+		nRow = CloudInfo[i].first;
+		nCol = CloudInfo[i].second;
+		nCount = 0;
+
+		for (int nIdx = 0; nIdx < 4; nIdx++)
+		{
+			nNextRow = nRow + ddy[nIdx];
+			nNextCol = nCol + ddx[nIdx];
+
+			if(nNextRow < 1 || nNextRow > N || nNextCol <1 || nNextCol >N) continue;
+
+			if (nCopyMap[nNextRow][nNextCol] >= 1)
+			{
+				nCount++;
+			}
+		}
+
+		nMap[nRow][nCol] += nCount;
+	}
+	
+}
+
+void SearchCloud()
+{
+	vector <pair<int, int>> NewCloud;
+
+	for (int i = 1; i <= N; i++)
+	{
+		for (int j = 1; j <= N; j++)
+		{
+			if (nMap[i][j] >= 2 && bVisited[i][j] == false)
+			{
+				NewCloud.push_back(make_pair(i, j));
+				nMap[i][j] -= 2;
+			}
+		}
+	}
+
+	CloudInfo.clear();
+
+	int nVecSize = NewCloud.size();
+
+	for (int i = 0; i < nVecSize; i++)
+	{
+		CloudInfo.push_back(NewCloud[i]); 
+	}
+
+
+}
+
+void CalcWater()
+{
+	for (int i = 1; i <= N; i++)
+	{
+		for (int j = 1; j <= N; j++)
+		{
+			nAnswer += nMap[i][j];
+		}
+	}
+}
+
+void Solve()
+{
+	for (int nTime = 0; nTime < M; nTime++)
+	{
+		nDirInfo = InputVec[nTime].nDir;
+		nMoveInfo = InputVec[nTime].nMove;
+
+		CopyMap();
+		MoveCloud();
+		Raining();
+		NeighborRaining();
+		SearchCloud();
+	}
+
+	CalcWater();	
+}
+
+int main()
+{
+	#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+	#endif
+
+	cin >> N >> M;
+
+	for (int i = 1; i <= N; i++)
+	{
+		for (int j = 1; j <= N; j++)
+		{
+			cin >> nMap[i][j];
+		}
+	}
+
+	InputInfo Input;
+	for (int i = 0; i < M; i++)
+	{
+		cin >> Input.nDir >> Input.nMove;
+		Input.nDir--;
+		InputVec.push_back(Input);
+	}
+
+	//초기 구름위치
+	CloudInfo.push_back(make_pair(N, 1));
+	CloudInfo.push_back(make_pair(N, 2));
+	CloudInfo.push_back(make_pair(N-1, 1));
+	CloudInfo.push_back(make_pair(N-1, 2));
+
+
+	Solve();
+
+	cout << nAnswer << endl;
+
+	return 0;
+}
