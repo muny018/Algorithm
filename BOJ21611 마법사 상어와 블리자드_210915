@@ -1,0 +1,340 @@
+//BOJ21611 마법사 상어와 블리자드
+
+//문제
+//https://www.acmicpc.net/problem/21611
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+#define MAX 51
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+struct Order
+{
+	int nDir;
+	int nLength;
+};
+
+int nMap[MAX][MAX] = { 0 };
+int N, M;
+int nStartPosRow, nStartPosCol, nSharkPosRow, nSharkPosCol;
+int nAnswer = 0;
+vector <int> Vec;
+vector <Order> vInputOrder;
+int ddx[] = { 0,0,-1,1 };
+int ddy[] = { -1,1,0,0 };
+
+int dx[] = { -1,0,1,0 };
+int dy[] = { 0,1,0,-1};
+int nCircle[4] = { 0 };
+
+void Explosion(int nTime)
+{
+	int nDir = vInputOrder[nTime].nDir;
+	int nLength = vInputOrder[nTime].nLength;
+
+	int nNextRow, nNextCol, nRow, nCol;
+
+	nNextRow = nSharkPosRow;
+	nNextCol = nSharkPosCol;
+
+	for (int i = 0; i < nLength; i++)
+	{
+		nNextRow = nNextRow + ddy[nDir];
+		nNextCol = nNextCol + ddx[nDir];
+
+	//	nCircle[nMap[nNextRow][nNextCol]]++;
+		nMap[nNextRow][nNextCol] = 0;
+	}
+}
+
+void Arrange()
+{
+	//벡터에 담기
+	vector <int> TempVec;
+	bool IsEnd = false;
+	int nCurRow, nCurCol, nNextRow, nNextCol;
+	int nSmallCount = 0;
+	bool IsTwice = false;
+	int nBigCount = 1;
+	int nDir = 0;
+
+	nNextRow = nSharkPosRow;
+	nNextCol = nSharkPosCol;
+
+	while (true)
+	{
+		nNextRow = nNextRow + dy[nDir];
+		nNextCol = nNextCol + dx[nDir];
+		nSmallCount++;
+
+		if (nBigCount == nSmallCount)
+		{
+			if (IsTwice == true)
+			{
+				nBigCount++;
+				nSmallCount = 0;
+				IsTwice = false;
+			}
+			else
+			{
+				IsTwice = true;
+				nSmallCount = 0;
+			}
+
+			nDir++;
+			if (nDir % 4 == 0) nDir = 0;
+
+		}
+
+		if (nMap[nNextRow][nNextCol] != 0)
+		{
+			TempVec.push_back((nMap[nNextRow][nNextCol]));
+		}
+
+
+		if (nNextRow == 0 && nNextCol == 0)
+		{
+			break;
+		}
+	}
+
+	TempVec.swap(Vec);
+}
+
+bool SearchSameNumProc(int nStartIdx)
+{
+	int nVecSize = Vec.size();
+
+	int nStartNum = Vec[nStartIdx];
+	int nNextNum;
+	int nCount = 1;
+	for (int i = nStartIdx+1; i < nVecSize; i++)
+	{
+		nNextNum = Vec[i];
+		if (nStartNum == nNextNum)
+		{
+			nCount++;
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	if (nCount >= 4)
+	{
+		for (int i = nStartIdx; i < nStartIdx + nCount; i++)
+		{
+			nCircle[Vec[i]]++;
+			Vec[i] = 0;
+		}
+		return true;
+	}
+
+	return false;
+
+}
+
+void SearchSameNum()
+{
+	int nVecSize = Vec.size();
+	bool IsExplosion = false;
+	vector <int> TempVec;
+
+	for (int i = 0; i < nVecSize; i++)
+	{
+		if (Vec[i] == 0) continue;
+
+		if (SearchSameNumProc(i) == true)
+		{
+			IsExplosion = true;
+		}
+	}
+	
+	if (IsExplosion == true)
+	{
+		for (int i = 0; i < nVecSize; i++)
+		{
+			if (Vec[i] == 0) continue;
+			TempVec.push_back(Vec[i]);
+		}
+		TempVec.swap(Vec);
+
+		SearchSameNum();
+	}
+}
+
+void DivideGroup()
+{
+	int nVecSize = Vec.size();
+	if (nVecSize == 0) return;
+	vector <int> TempVec;
+
+	int nCurNum = 0;
+	int nNextNum = 0;
+	int nCount = 1;
+	int nCurIdx = 0, nNextIdx = 0;
+
+	while(true)
+	{
+		if (Vec[nCurIdx] == 0) continue;
+
+		nCurNum = Vec[nCurIdx];
+		
+		nNextIdx = nCurIdx + 1;
+
+		if (nNextIdx >= nVecSize)
+		{
+			TempVec.push_back(nCount);
+			TempVec.push_back(nCurNum);
+			break;
+		}
+
+		nNextNum = Vec[nNextIdx];
+
+		
+		if (nCurNum == nNextNum)
+		{
+			nCount++;
+		}
+		else
+		{
+			TempVec.push_back(nCount);
+			TempVec.push_back(nCurNum);
+
+			nCount = 1;
+			
+		}
+		nCurIdx++;
+		
+		if (nCurIdx >= nVecSize)
+		{
+			break;
+		}
+	}
+
+	TempVec.swap(Vec);
+}
+
+void UpdateMap()
+{
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			nMap[i][j] = 0;
+		}
+	}
+
+	
+	int nVecSize = Vec.size();
+	if (nVecSize == 0) return;
+	//벡터에 담기
+	bool IsEnd = false;
+	int nCurRow, nCurCol, nNextRow, nNextCol;
+	int nSmallCount = 0;
+	bool IsTwice = false;
+	int nBigCount = 1;
+	int nDir = 0;
+
+	nNextRow = nSharkPosRow;
+	nNextCol = nSharkPosCol;
+	int nIdx = 0;
+	while (true)
+	{
+		nNextRow = nNextRow + dy[nDir];
+		nNextCol = nNextCol + dx[nDir];
+		nSmallCount++;
+
+		if (nBigCount == nSmallCount)
+		{
+			if (IsTwice == true)
+			{
+				nBigCount++;
+				nSmallCount = 0;
+				IsTwice = false;
+			}
+			else
+			{
+				IsTwice = true;
+				nSmallCount = 0;
+			}
+
+			nDir++;
+			if (nDir % 4 == 0) nDir = 0;
+
+		}
+
+		nMap[nNextRow][nNextCol] = Vec[nIdx];
+		nIdx++;
+
+		if (nIdx >= nVecSize) break;
+
+		if (nNextRow == 0 && nNextCol == 0)
+		{
+			break;
+		}
+	}
+
+}
+
+void Solve()
+{
+	for (int nTime = 0; nTime < M; nTime++)
+	{
+		Vec.clear();
+		Explosion(nTime);
+		Arrange();
+		SearchSameNum();
+		DivideGroup();
+		UpdateMap();
+	}
+
+	int One = nCircle[1];
+	int Two = nCircle[2];
+	int Three = nCircle[3];
+
+	nAnswer = 1 * One + 2 * Two + 3 * Three;
+
+}
+
+int main()
+{
+	#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+	#endif
+	cin >> N >> M;
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			cin >> nMap[i][j];
+		}
+	}
+	
+	nSharkPosRow = (N + 1) / 2 - 1;
+	nSharkPosCol = nSharkPosRow;
+
+	nStartPosRow = nSharkPosRow;
+	nStartPosCol = nStartPosRow - 1;
+
+	Order Input;
+	for (int i = 0; i < M; i++)
+	{
+		cin >> Input.nDir >> Input.nLength;
+		Input.nDir--;
+		vInputOrder.push_back(Input);
+	}
+
+	Solve();
+
+	cout << nAnswer << "\n";
+	
+	return 0;
+}
