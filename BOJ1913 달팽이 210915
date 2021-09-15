@@ -1,0 +1,95 @@
+//BOJ1913 달팽이 210915
+
+//문제
+//https://www.acmicpc.net/problem/1913
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+#define MAX 1000
+
+#include <iostream>
+using namespace std;
+
+int N, nTarget;
+int nMap[MAX][MAX] = { 0 };
+int nStartRow, nStartCol;
+int dx[] = { 0,1,0,-1 };
+int dy[] = { -1,0,1,0 };
+int nAnswerRow = 0;
+int nAnswerCol = 0;
+
+void Solve()
+{
+	int nDir = 0;
+	int size = 0;
+	int nNextRow = nStartRow;
+	int nNextCol = nStartCol;
+
+	int nNum = 2;
+	for (int i = 0; i < N * 2 - 1; i++)
+	{
+		if (i % 2 == 0) size++;
+		
+		for (int j = 0; j < size; j++)
+		{
+			nNextRow = nNextRow + dy[nDir];
+			nNextCol = nNextCol + dx[nDir];
+			if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= N) break;
+			nMap[nNextRow][nNextCol] = nNum;
+			nNum++;
+		}
+
+		nDir++;
+		if (nDir % 4 == 0) nDir = 0;
+	}
+
+
+
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			if (nMap[i][j] == nTarget)
+			{
+				nAnswerRow = i + 1;
+				nAnswerCol = j + 1;
+				break;
+			}
+		}
+	}
+
+}
+
+int main()
+{
+
+	#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+	#endif
+
+
+	cin >> N >> nTarget;
+
+	nStartRow = N / 2;
+	nStartCol = N / 2;
+	nMap[nStartRow][nStartCol] = 1;
+	Solve();
+
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			cout << nMap[i][j] << " ";
+
+		}
+		cout << "\n";
+	}
+
+	cout << nAnswerRow << " " << nAnswerCol << "\n";
+
+	return 0;
+}
