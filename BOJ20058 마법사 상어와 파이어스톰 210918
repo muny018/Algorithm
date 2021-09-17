@@ -1,0 +1,249 @@
+//BOJ20058 마법사 상어와 파이어스톰 210918
+
+//문제
+// https://www.acmicpc.net/problem/20058
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+#define MAX 65
+
+#include <iostream>
+#include <queue>
+#include <vector>
+using namespace std;
+
+struct Pos
+{
+	int nRow;
+	int nCol; 
+
+};
+
+vector <Pos> Vec;
+vector <int> VecL;
+
+int N, Q, L;
+int nMap[MAX][MAX] = { 0 };
+int nCopyMap[MAX][MAX] = { 0 };
+int dx[] = { -1,0,1,0 };
+int dy[] = { 0,-1,0,1 };
+int nAnswerSum = 0;
+int nAnswerMaxSize = 0;
+
+void BFS( int nStartRow, int nStartCol)
+{
+	bool bVisited[MAX][MAX] = { false };
+	Pos QuePos;
+	queue <Pos> Que;
+	QuePos.nRow = nStartRow;
+	QuePos.nCol = nStartCol;
+	bVisited[nStartRow][nStartCol] = true;
+	Que.push(QuePos);
+	int nSize = 1;
+
+	int nCurRow, nCurCol, nNextRow, nNextCol;
+	while (!Que.empty())
+	{
+		nCurRow = Que.front().nRow;
+		nCurCol = Que.front().nCol;
+		Que.pop();
+
+		for (int i = 0; i < 4; i++)
+		{
+			nNextRow = nCurRow + dy[i];
+			nNextCol = nCurCol + dx[i];
+			if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= N) continue;
+			if (bVisited[nNextRow][nNextCol] == true || nMap[nNextRow][nNextCol] <= 0) continue;
+
+			bVisited[nNextRow][nNextCol] = true;
+			QuePos.nRow = nNextRow;
+			QuePos.nCol = nNextCol;
+			nSize++;
+			Que.push(QuePos);
+		}
+	}
+
+	if (nAnswerMaxSize < nSize)
+	{
+		nAnswerMaxSize = nSize; 
+	}
+
+}
+
+void CheckIceNum()
+{
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			nCopyMap[i][j] = nMap[i][j];
+		}
+	}
+
+	int nNextRow, nNextCol;
+	int nCount = 0;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			
+			if (nCopyMap[i][j] <= 0) continue;
+
+			nCount = 0;
+			for (int k = 0; k < 4; k++)
+			{
+				nNextRow = i + dy[k];
+				nNextCol = j + dx[k];
+				if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= N) continue;
+				
+				if (nCopyMap[nNextRow][nNextCol] > 0)
+				{
+					nCount++;
+				}
+			}
+
+			if (nCount < 3)
+			{
+				nMap[i][j]--;
+			}
+		}
+	}
+}
+
+/*
+[0][0] = [3][0]
+[0][1] = [2][0]
+
+
+[0][4] = [3][4]
+[0][5] = [2][4]
+[0][6] = [1][4]
+
+[4][4] = [7][4]
+[4][5] = [6][4]
+
+*/
+
+void RotateRec(int nStartRow, int nStartCol)
+{
+	/*
+	for (int i = nStartRow; i < nStartRow + L; i++)
+	{
+		for (int j = nStartCol; j < nStartCol + L; j++)
+		{
+			nMap[i][j] = nCopyMap[nStartRow + L-1-j + nStartCol][nStartCol + i - nStartRow];
+		}
+	}
+	*/
+
+	for (int i = 0; i < L; i++)
+	{
+		for (int j = 0; j < L; j++)
+		{
+			nMap[nStartRow + i][nStartCol + j] = nCopyMap[nStartRow + L - 1 - j][nStartCol + i];
+		}
+	}
+	
+}
+
+void Rotate()
+{
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			nCopyMap[i][j] = nMap[i][j];
+		}
+	}
+
+	int nVecSize = Vec.size();
+	for (int i = 0; i < nVecSize; i++)
+	{
+		RotateRec(Vec[i].nRow, Vec[i].nCol);
+	}
+}
+
+
+void CalcStartPos()
+{
+	Vec.clear();
+	Pos CalcPos;
+	for (int i = 0; i < N; i = i + L)
+	{
+		for (int j = 0; j < N; j = j + L)
+		{
+			CalcPos.nRow = i;
+			CalcPos.nCol = j;
+			Vec.push_back(CalcPos);
+		}
+	}
+}
+
+void Solve()
+{
+	for (int nTime = 0; nTime < Q; nTime++)
+	{
+		L = VecL[nTime];
+		CalcStartPos();
+		Rotate();
+		CheckIceNum();
+	}
+
+	//모든갯수 
+	nAnswerSum = 0;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			if (nMap[i][j] <= 0) continue;
+			nAnswerSum += nMap[i][j];
+			BFS(i, j);
+		}
+	}
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+	int ninput;
+	cin >> ninput >> Q;
+
+	N = 1;
+	for (int i = 0; i < ninput; i++)
+	{
+		N = N * 2;
+	}
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			cin >> nMap[i][j];
+		}
+	}
+	
+	for (int i = 0; i < Q; i++)
+	{
+		cin >> ninput;
+		L = 1;
+		for (int i = 0; i < ninput; i++)
+		{
+			L = L * 2;
+		}
+		VecL.push_back(L);
+	}
+	
+
+		
+	Solve();
+
+	cout << nAnswerSum << "\n" << nAnswerMaxSize << "\n";
+
+
+	return 0;
+}
