@@ -1,0 +1,230 @@
+//BOJ20057_마법사 상어와 토네이도_210919
+
+//문제
+//https://www.acmicpc.net/problem/20057
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+#define MAX 505
+
+#include <iostream>
+using namespace std; 
+
+int nMap[MAX][MAX] = { 0 };
+int nCopyMap[MAX][MAX] = { 0 };
+int nAnswer = 0;
+int nEndPosRow = 2;
+int nEndPosCol = 2;
+int N;
+int dx[] = { -1,0,1,0 };
+int dy[] = { 0,1,0,-1 };
+float nCalcMap[4][5][5] = { 0.00f };
+
+void CalcAnswer()
+{
+	int nTotalSum = 0;
+	int nProcSum = 0; 
+
+	for (int i = 0; i < N + 4; i++)
+	{
+		for (int j = 0; j < N + 4; j++)
+		{
+			nTotalSum += nMap[i][j];
+		}
+	}
+
+	for (int i = 2; i < N + 2; i++)
+	{
+		for (int j = 2; j < N + 2; j++)
+		{
+			nProcSum += nMap[i][j];
+		}
+	}
+
+	nAnswer = nTotalSum - nProcSum;
+
+}
+
+void ThrowAway(int nCurRow, int nCurCol, int nDir)
+{
+	int nNum = nMap[nCurRow][nCurCol];
+	nMap[nCurRow][nCurCol] = 0;
+	int nAlpha = 0;
+	int nAcculmulate = 0;
+	int nProc = 0;
+
+	int nCalcRow, nCalcCol;
+
+	for (int i = nCurRow - 2; i <= nCurRow + 2; i++)
+	{
+		nCalcRow = i - nCurRow + 2;
+		for (int j = nCurCol - 2; j <= nCurCol + 2; j++)
+		{
+			nCalcCol = j - nCurCol + 2;
+
+			nProc = (int)(nNum * nCalcMap[nDir][nCalcRow][nCalcCol]);
+
+			nAcculmulate += nProc;
+			nMap[i][j] += nProc;
+		}
+	}
+
+	nAlpha = nNum - nAcculmulate;
+
+	//나머지 알파 계산
+	if (nDir == 0) nMap[nCurRow][nCurCol - 1] += nAlpha;
+	else if (nDir == 1) nMap[nCurRow + 1][nCurCol] += nAlpha;
+	else if (nDir == 2) nMap[nCurRow][nCurCol + 1] += nAlpha;
+	else if (nDir == 3) nMap[nCurRow - 1][nCurCol] += nAlpha;
+
+}
+
+
+void Solve()
+{
+	int nStartPosRow = N / 2 + 2;
+	int nStartPosCol = N / 2 + 2;
+
+	int nNextRow = nStartPosRow;
+	int nNextCol = nStartPosCol;
+
+	int nSize = 1;
+	int nCount = 0;
+	int nDir = 0;
+
+	while (true)
+	{
+		if (nNextRow == 2 && nNextCol == 2) 
+		{
+			break;
+		}
+
+		if (nCount == 2)
+		{
+			nSize++;
+			nCount = 1;
+		}
+		else
+		{
+			nCount++;
+		}
+
+		for (int i = 0; i < nSize; i++)
+		{
+			nNextRow = nNextRow + dy[nDir];
+			nNextCol = nNextCol + dx[nDir];
+
+			ThrowAway(nNextRow, nNextCol, nDir);
+
+			if (nNextRow == 2 && nNextCol == 2)
+			{
+				break;
+			}
+		}
+
+		nDir++;
+		if (nDir % 4 == 0) nDir = 0;
+
+	}
+
+	CalcAnswer();
+	
+}
+
+
+void Ready()
+{
+	//좌하우상
+
+	//좌
+	nCalcMap[0][0][2] = 0.02;
+
+	nCalcMap[0][1][1] = 0.1;
+	nCalcMap[0][1][2] = 0.07;
+	nCalcMap[0][1][3] = 0.01;
+
+	nCalcMap[0][2][0] = 0.05;
+
+	nCalcMap[0][3][1] = 0.1; 
+	nCalcMap[0][3][2] = 0.07;
+	nCalcMap[0][3][3] = 0.01;
+
+	nCalcMap[0][4][2] = 0.02;
+	
+
+
+	//하
+	nCalcMap[1][1][1] = 0.01;
+	nCalcMap[1][1][3] = 0.01;
+
+
+	nCalcMap[1][2][0] = 0.02;
+	nCalcMap[1][2][1] = 0.07;
+	nCalcMap[1][2][3] = 0.07;
+	nCalcMap[1][2][4] = 0.02;
+
+	nCalcMap[1][3][1] = 0.1;
+	nCalcMap[1][3][3] = 0.1;
+
+	nCalcMap[1][4][2] = 0.05;
+	   	  
+
+
+	//우
+	nCalcMap[2][0][2] = 0.02;
+
+	nCalcMap[2][1][1] = 0.01;
+	nCalcMap[2][1][2] = 0.07;
+	nCalcMap[2][1][3] = 0.1;
+
+	nCalcMap[2][2][4] = 0.05;
+
+	nCalcMap[2][3][1] = 0.01;
+	nCalcMap[2][3][2] = 0.07;
+	nCalcMap[2][3][3] = 0.1;
+
+	nCalcMap[2][4][2] = 0.02;
+	
+
+
+	//상
+	nCalcMap[3][0][2] = 0.05;
+
+	nCalcMap[3][1][1] = 0.1;
+	nCalcMap[3][1][3] = 0.1;
+
+	nCalcMap[3][2][0] = 0.02;
+	nCalcMap[3][2][1] = 0.07;
+	nCalcMap[3][2][3] = 0.07;
+	nCalcMap[3][2][4] = 0.02;
+
+	nCalcMap[3][3][1] = 0.01;
+	nCalcMap[3][3][3] = 0.01;
+}
+
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+	cin >> N;
+	
+	for (int i = 2; i < N + 2; i++)
+	{
+		for (int j = 2; j < N + 2; j++)
+		{
+			cin >> nMap[i][j];
+		}
+	}
+	Ready();
+
+	Solve();
+
+	cout << nAnswer << "\n";
+
+
+	return 0;
+}
