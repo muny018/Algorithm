@@ -1,0 +1,125 @@
+//BOJ20055 컨베이어 벨트 위의 로봇_210922
+
+//문제
+//https://www.acmicpc.net/problem/20055
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+#define MAX 202
+
+#include <iostream>
+using namespace std;
+
+struct Info
+{
+	int nValue;
+	bool IsRobot;
+};
+
+int N, K;
+Info nMap[MAX] = { 0 };
+int nAnswer = 0;
+
+bool Check()
+{
+	int count = 0;
+	for (int i = 0; i < 2 * N ; i++)
+	{
+		if (nMap[i].nValue == 0)
+		{
+			count++;
+		}
+	}
+
+	if (count >= K) return true;
+	else return false;
+}
+
+void Move_Robot()
+{
+	for (int i = N - 2; i >= 0; i--)
+	{
+		if (nMap[i].IsRobot == true && nMap[i + 1].IsRobot == false && nMap[i + 1].nValue > 0)
+		{
+			nMap[i + 1].IsRobot = true;
+			nMap[i + 1].nValue--;
+
+			nMap[i].IsRobot = false;
+		}
+	}
+
+	//첫번째(0번) 자리 로봇 올림
+	if (nMap[0].IsRobot == false && nMap[0].nValue > 0)
+	{
+		nMap[0].IsRobot = true;
+		nMap[0].nValue--;
+	}
+}
+
+void Move_Belt()
+{
+	//끝에 있냐
+	if (nMap[N - 1].IsRobot == true) nMap[N - 1].IsRobot = false;
+	
+	Info temp;
+
+	//벨트 옮기기
+	temp = nMap[2 * N - 1];
+	for (int i = 2*N-1; i > 0; i--)
+	{
+		nMap[i] = nMap[i - 1];
+	}
+	nMap[0] = temp;
+
+	//끝에 있냐
+	if (nMap[N - 1].IsRobot == true) nMap[N - 1].IsRobot = false;
+
+
+}
+
+void Solve()
+{
+	int nTime = 0;
+	while (true)
+	{
+		nTime++;
+
+		//벨트움직이기
+		Move_Belt();
+
+		//로봇움직이기
+		Move_Robot();
+
+		//탈출
+		if (Check() == true)
+		{
+			nAnswer = nTime;
+			return;
+		}
+	}
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+
+	cin >> N >> K; 
+
+	int nNum;
+	for (int i = 0; i < 2*N; i++)
+	{
+		cin >> nNum;
+		nMap[i].nValue = nNum;
+		nMap[i].IsRobot = false;
+	}
+	
+	Solve();
+
+	cout << nAnswer << "\n";
+
+	return 0;
+}
