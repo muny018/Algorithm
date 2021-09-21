@@ -1,0 +1,194 @@
+//BOJ20056 마법사 상어와 파이어볼 210921
+
+//문제
+//https://www.acmicpc.net/problem/20056
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+#define MAX 51
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int dx[] = { 0,1,1,1,0,-1,-1,-1 };
+int dy[] = { -1,-1,0,1,1,1,0,-1 };
+
+struct Info
+{
+	int nRow;
+	int nCol;
+	int nWeight;
+	int nDir;
+	int nSpeed;
+};
+vector <Info> vInfo;
+vector <Info> vMap[MAX][MAX];
+int nAnswer = 0;
+int N, M, K;
+
+void vMapInit()
+{
+	for (int i = 1; i <= N; i++)
+	{
+		for (int j = 1; j <= N; j++)
+		{
+			vMap[i][j].clear();
+		}
+	}
+}
+
+void MoveFireball(int nIdx)
+{
+	int nDir = vInfo[nIdx].nDir;
+	int nSpeed = vInfo[nIdx].nSpeed;
+	int nRow = vInfo[nIdx].nRow;
+	int nCol = vInfo[nIdx].nCol;
+
+	nSpeed = nSpeed % N;
+	int nNextRow = nRow;
+	int nNextCol = nCol;
+	for (int i = 0; i < nSpeed; i++)
+	{
+		nNextRow = nNextRow + dy[nDir];
+		nNextCol = nNextCol + dx[nDir];
+
+		if (nNextRow > N) nNextRow = 1;
+		else if (nNextRow <= 0)nNextRow = N;
+
+		if (nNextCol > N) nNextCol = 1;
+		else if (nNextCol <= 0) nNextCol = N;
+	}
+
+	vInfo[nIdx].nRow = nNextRow;
+	vInfo[nIdx].nCol = nNextCol;
+
+	vMap[nNextRow][nNextCol].push_back(vInfo[nIdx]);
+
+}
+
+void Solve()
+{
+	int nVecSize, nSize;
+	Info TempInfo;
+
+	for (int nTime = 0; nTime < K; nTime++)
+	{
+		vMapInit();
+		nVecSize = vInfo.size();
+
+		for (int i = 0; i < nVecSize; i++)
+		{
+			MoveFireball(i);
+		}
+
+		vInfo.clear();
+
+		for (int i = 1; i <= N; i++)
+		{
+			for (int j = 1; j <= N; j++)
+			{
+				nSize = vMap[i][j].size();
+				if (nSize == 0) continue;
+
+				if (nSize == 1)
+				{
+					vInfo.push_back(vMap[i][j].at(0));
+				}
+				else if (nSize >= 2)
+				{
+					int nWeightSum = 0, nResultWeight = 0;
+					int nSpeedSum = 0, nResultSpeed = 0;
+					int nDirSum = 0;
+					int Even = 0;
+					int Odd = 0;
+
+					for (int z = 0; z < nSize; z++)
+					{
+						nWeightSum += vMap[i][j].at(z).nWeight;
+						nSpeedSum += vMap[i][j].at(z).nSpeed;
+
+						if (vMap[i][j].at(z).nDir % 2 == 0)
+						{
+							//짝수
+							Even++;
+						}
+						else
+						{
+							//홀수
+							Odd++;
+						}
+					}
+
+					nResultWeight = nWeightSum / 5;
+					if (nResultWeight == 0) continue;
+					nResultSpeed = nSpeedSum / nSize;
+
+					TempInfo.nRow = vMap[i][j].at(0).nRow;
+					TempInfo.nCol = vMap[i][j].at(0).nCol;
+					TempInfo.nSpeed = nResultSpeed;
+					TempInfo.nWeight = nResultWeight;
+
+					if (Even > 0 && Odd > 0)
+					{
+						//홀짝 다 있음
+						int nDir = 1;
+						for (int v = 0; v < 4; v++)
+						{
+							TempInfo.nDir = nDir;
+
+							vInfo.push_back(TempInfo);
+							nDir += 2;
+						}
+
+					}
+					else if (Even == 0 || Odd == 0)
+					{
+						//홀짝 둘중 하나만 있음
+						int nDir = 0;
+						for (int v = 0; v < 4; v++)
+						{
+							TempInfo.nDir = nDir;
+
+							vInfo.push_back(TempInfo);
+							nDir += 2;
+						}
+					}
+
+
+				}
+			}
+		}
+	}
+
+	nVecSize = vInfo.size();
+
+	for (int i = 0; i < nVecSize; i++)
+	{
+		nAnswer += vInfo[i].nWeight;
+	}
+
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+	cin >> N >> M >> K;
+
+	Info Input;
+	for (int i = 0; i < M; i++)
+	{
+		cin >> Input.nRow >> Input.nCol >> Input.nWeight >> Input.nSpeed >> Input.nDir;
+		vInfo.push_back(Input);
+	}
+
+	Solve();
+
+	cout << nAnswer << "\n";
+
+	return 0;
+}
