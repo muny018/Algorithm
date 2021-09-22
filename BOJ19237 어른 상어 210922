@@ -1,0 +1,239 @@
+//BOJ19237 어른 상어 210922 
+
+//문제
+//https://www.acmicpc.net/problem/19237
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+
+#define MAX 21
+
+#include <iostream>
+#include <algorithm>
+#include <vector>
+using namespace std;
+
+struct MapInfo
+{
+	vector <int> v;
+	int Smell_Num;
+	int Smell_Time;
+};
+
+struct SharkInfo
+{
+	int nRow;
+	int nCol;
+	int nDir;
+	bool Islive;
+	vector <int> Priority[5];
+};
+
+int N, M, K;
+MapInfo nMap[MAX][MAX];
+SharkInfo Shark[402];
+
+int dy[] = { -1,1,0,0 };
+int dx[] = { 0,0,-1,1 };
+int nAnswer = -1;
+
+bool Check()
+{
+	int nVecSize;
+	int nCount = 0;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			nVecSize = nMap[i][j].v.size();
+			nCount += nVecSize;	
+		}
+	}
+
+	if (Shark[1].Islive == true && nCount == 1)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+	
+}
+
+void Eat_Shark()
+{
+	int nVecSize;
+	int nSharkNum;
+	int Temp;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			nVecSize = nMap[i][j].v.size();
+			if (nVecSize >= 2)
+			{
+				sort(nMap[i][j].v.begin(), nMap[i][j].v.end());
+
+				Temp = nMap[i][j].v.at(0);
+				for (int k = 1; k < nVecSize; k++)
+				{
+					nSharkNum = nMap[i][j].v.at(k);
+					Shark[nSharkNum].Islive = false;
+				}
+				nMap[i][j].v.clear();
+				nMap[i][j].v.push_back(Temp);
+			}
+		}
+	}
+	
+}
+
+void Move_Shark(int nTime)
+{
+	int nNextRow, nNextCol, nPriorityDir;
+	for (int SharkNum = 1; SharkNum <= M; SharkNum++)
+	{
+		if (Shark[SharkNum].Islive == false) continue;
+		bool flag = false; 
+		
+		int nRow = Shark[SharkNum].nRow; 
+		int nCol = Shark[SharkNum].nCol;
+		int nDir = Shark[SharkNum].nDir;
+
+		nMap[nRow][nCol].v.clear();
+
+		//냄새없는곳
+		for (int i = 0; i < 4; i++)
+		{
+			nPriorityDir = Shark[SharkNum].Priority[nDir].at(i);
+			nNextRow = nRow + dy[nPriorityDir];
+			nNextCol = nCol + dx[nPriorityDir];
+
+			if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= N) continue;
+			if (nMap[nNextRow][nNextCol].Smell_Time <= nTime)
+			{
+				Shark[SharkNum].nRow = nNextRow;
+				Shark[SharkNum].nCol = nNextCol;
+				Shark[SharkNum].nDir = nPriorityDir;
+				nMap[nNextRow][nNextCol].v.push_back(SharkNum);
+				flag = true;
+				break;
+			}
+		}
+
+
+		//냄새꽉찼을 때
+		if (flag == false)
+		{
+			for (int i = 0; i < 4; i++)
+			{
+				nPriorityDir = Shark[SharkNum].Priority[nDir].at(i);
+				nNextRow = nRow + dy[nPriorityDir];
+				nNextCol = nCol + dx[nPriorityDir];
+
+				if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= N) continue;
+				if (nMap[nNextRow][nNextCol].Smell_Num == SharkNum)
+				{
+					Shark[SharkNum].nRow = nNextRow;
+					Shark[SharkNum].nCol = nNextCol;
+					Shark[SharkNum].nDir = nPriorityDir;
+					nMap[nNextRow][nNextCol].v.push_back(SharkNum);
+					break;
+				}
+			}
+		}
+	}
+}
+
+void Shark_Smell(int nTime)
+{
+	for (int i = 1; i <= M; i++)
+	{
+		if (Shark[i].Islive == false) continue;
+		int nRow = Shark[i].nRow;
+		int nCol = Shark[i].nCol;
+
+		nMap[nRow][nCol].Smell_Num = i;
+		nMap[nRow][nCol].Smell_Time = nTime + K;	
+	}
+}
+
+void Solve()
+{
+	for (int nTime = 1; nTime <= 1000; nTime++)
+	{
+		//냄새뿌린다. 
+		Shark_Smell(nTime);
+
+		//움직인다
+		Move_Shark(nTime);
+
+		//잡아먹는다
+		Eat_Shark();
+
+		//체크
+		if (Check() == true)
+		{
+			nAnswer = nTime;
+			return;
+		}
+	}
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+	cin >> N >> M >> K;
+
+	int nNum;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			cin >> nNum;
+			if (nNum != 0)
+			{
+				nMap[i][j].v.push_back(nNum);
+				Shark[nNum].nRow = i;
+				Shark[nNum].nCol = j;
+			}
+				
+			nMap[i][j].Smell_Num = 0;
+			nMap[i][j].Smell_Time = 0;
+			
+		}
+	}
+
+	int nDir;
+	for (int i = 1; i <= M; i++)
+	{
+		cin >> nDir;
+		nDir--;
+		Shark[i].nDir = nDir;
+		Shark[i].Islive = true;
+	}
+
+	for (int i = 1; i <= M; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			for (int k = 0; k < 4; k++)
+			{
+				cin >> nDir;
+				nDir--;
+				Shark[i].Priority[j].push_back(nDir);
+			}
+		}
+	}
+
+	Solve();
+	
+	cout << nAnswer << "\n";
+
+	return 0;
+}
