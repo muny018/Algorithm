@@ -1,0 +1,180 @@
+//BOJ19236 청소년상어 210922
+
+//문제
+//https://www.acmicpc.net/problem/19236
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+
+#define MAX 17
+
+#include <iostream>
+#include <cstring>
+using namespace std;
+
+int dx[] = { 0,0,-1,-1,-1,0,1,1,1 };
+int dy[] = { 0,-1,-1,0,1,1,1,0,-1 };
+
+struct FishInfo
+{
+	int nRow;
+	int nCol;
+	int nDir;
+	bool IsLive;
+};
+
+FishInfo Fish[MAX];
+int nMap[5][5] = { 0 };
+int nAnswer = 0;
+int N = 4;
+
+void MoveFish()
+{
+	int nCurRow, nCurCol, nNextRow, nNextCol;
+	int nCurDir, nNextDir, nCurNum, nNextNum;
+	int TempRow, TempCol;
+
+	for (int i = 1; i <= 16; i++)
+	{
+		if (Fish[i].IsLive == false) continue;
+
+		nCurRow = Fish[i].nRow;
+		nCurCol = Fish[i].nCol;
+		nCurDir = Fish[i].nDir;
+
+		nNextDir = nCurDir - 1; 
+
+		for (int j = 0; j <= 7; j++)
+		{
+			nNextDir++;
+			if (nNextDir >= 9) nNextDir = 1;
+
+			nNextRow = nCurRow + dy[nNextDir];
+			nNextCol = nCurCol + dx[nNextDir];
+			if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= N) continue;
+		
+			if (nMap[nNextRow][nNextCol] == 0)
+			{
+				nMap[nCurRow][nCurCol] = 0;
+				nMap[nNextRow][nNextCol] = i;
+				Fish[i].nRow = nNextRow;
+				Fish[i].nCol = nNextCol; 
+				Fish[i].nDir = nNextDir;
+				break;
+			}
+			else if (nMap[nNextRow][nNextCol] >= 1)
+			{
+				nNextNum = nMap[nNextRow][nNextCol];
+				swap(nMap[nNextRow][nNextCol], nMap[nCurRow][nCurCol]);
+				
+				TempRow = Fish[nNextNum].nRow;
+				TempCol = Fish[nNextNum].nCol;
+					
+				Fish[nNextNum].nRow = nCurRow;
+				Fish[nNextNum].nCol = nCurCol;
+					
+				Fish[i].nRow = TempRow;
+				Fish[i].nCol = TempCol;
+				Fish[i].nDir = nNextDir;
+				break;
+			}
+		}
+
+	}
+
+
+}
+
+void Make_State(int nRow, int nCol, int nNextRow, int nNextCol, int nNum, bool flag)
+{
+	if (flag == true)
+	{
+		nMap[nRow][nCol] = 0;
+		nMap[nNextRow][nNextCol] = -1;
+		Fish[nNum].IsLive = false;
+	}
+	else
+	{
+		nMap[nRow][nCol] = -1;
+		nMap[nNextRow][nNextCol] = nNum;
+		Fish[nNum].IsLive = true;
+	}
+}
+
+void DepthFirstSearch(int nRow, int nCol, int nDir, int nSum)
+{
+	if (nSum > nAnswer)
+	{
+		nAnswer = nSum;
+	}
+
+	//물고기 저장 
+	int nCopyMap[5][5] = { 0 };
+	FishInfo CopyFish[MAX];
+	memcpy(nCopyMap, nMap, sizeof(nMap));
+	memcpy(CopyFish, Fish, sizeof(Fish));
+
+
+	MoveFish();
+
+	for (int i = 1; i <= 3; i++)
+	{
+		int nNextRow = nRow + dy[nDir] * i;
+		int nNextCol = nCol + dx[nDir] * i;
+
+		if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= N) continue;
+
+		int nNum = nMap[nNextRow][nNextCol];
+
+		if (nNum > 0 && Fish[nNum].IsLive == true)
+		{
+			int nNextDir = Fish[nNum].nDir;
+			Make_State(nRow, nCol, nNextRow, nNextCol, nNum, true);
+			DepthFirstSearch(nNextRow, nNextCol, nNextDir, nSum + nNum);
+			Make_State(nRow, nCol, nNextRow, nNextCol, nNum, false);
+		}
+	}
+
+	//물고기 위치 원복
+	memcpy(nMap, nCopyMap, sizeof(nCopyMap));
+	memcpy(Fish, CopyFish, sizeof(CopyFish));
+
+}
+
+void Solve()
+{
+	int nNum = nMap[0][0];
+	Fish[nNum].IsLive = false;
+	int nDir = Fish[nNum].nDir;
+	nMap[0][0] = -1;
+	DepthFirstSearch(0, 0, nDir, nNum);
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+
+	int nNum, nDir;
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			cin >> nNum >> nDir;
+			Fish[nNum].nRow = i;
+			Fish[nNum].nCol = j;
+			Fish[nNum].nDir = nDir;
+			Fish[nNum].IsLive = true;
+			nMap[i][j] = nNum;
+		}
+	}
+
+	Solve();
+
+	cout << nAnswer << "\n";
+
+	return 0; 
+}
