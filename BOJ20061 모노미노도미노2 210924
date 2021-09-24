@@ -1,0 +1,370 @@
+//BOJ20061 모노미노도미노2 210924
+
+//문제
+// https://www.acmicpc.net/problem/20061
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <cstring>
+using namespace std;
+
+struct Info
+{
+	int nType;
+	int nRow;
+	int nCol;
+};
+
+vector <Info> Vec;
+int N, t;
+int nGreen[6][4] = { 0 };
+int nBlue[4][6] = { 0 };
+int nScore = 0; 
+int nAnswer = 0;
+
+
+
+void Green_Delete(int nIdx)
+{
+	int nGreenCopy[6][4] = { 0 };
+	memcpy(nGreenCopy, nGreen, sizeof(nGreen));
+
+	for (int i = 1; i <= nIdx; i++)
+	{
+		for (int j = 0; j <= 3; j++)
+		{
+			nGreen[i][j] = nGreenCopy[i - 1][j];
+		}
+		
+	}
+
+	for (int i = nIdx + 1; i <= 5; i++)
+	{
+		for (int j = 0; j <= 3; j++)
+		{
+			nGreen[i][j] = nGreenCopy[i][j];
+		}
+	}
+
+	nGreen[0][0] = 0;
+	nGreen[0][1] = 0;
+	nGreen[0][2] = 0;
+	nGreen[0][3] = 0;
+
+}
+
+void Blue_Delete(int nIdx)
+{
+	int nBlueCopy[4][6] = { 0 };
+	memcpy(nBlueCopy, nBlue, sizeof(nBlue));
+
+	for (int j = 1; j <= nIdx; j++)
+	{
+		for (int i = 0; i <= 3; i++)
+		{
+			nBlue[i][j] = nBlueCopy[i][j-1];
+		}
+
+	}
+
+	for (int j = nIdx+1; j <= 5; j++)
+	{
+		for (int i = 0; i <= 3; i++)
+		{
+			nBlue[i][j] = nBlueCopy[i][j];
+		}
+
+	}
+
+	nBlue[0][0] = 0;
+	nBlue[1][0] = 0;
+	nBlue[2][0] = 0;
+	nBlue[3][0] = 0;
+}
+
+
+void Check_Score()
+{
+	//그린
+	int nCount = 0;
+	for (int i = 0; i <= 5; i++)
+	{
+		nCount = 0;
+		for (int j = 0; j <= 3; j++)
+		{
+			if (nGreen[i][j] >= 1) nCount++;
+		}
+
+		if (nCount == 4)
+		{
+			nScore++;
+			
+			//행 삭제
+			Green_Delete(i);
+		}
+	}
+
+	//블루
+	for (int j = 0; j <= 5; j++)
+	{
+		nCount = 0;
+		for (int i= 0; i <= 3; i++)
+		{
+			if (nBlue[i][j] >= 1) nCount++;
+		}
+
+		if (nCount == 4)
+		{
+			nScore++;
+
+		
+			//열 삭제
+			Blue_Delete(j);
+		}
+	}
+}
+
+
+int Check_GreenBlock(int nCheckRow, int nCheckCol)
+{
+
+	if (nGreen[0][nCheckCol] >= 1) return -1;
+
+	for (int nRow = 0; nRow <= 4; nRow++)
+	{
+		if (nGreen[nRow + 1][nCheckCol] >= 1) return nRow;
+	}
+
+	return 5;
+}
+
+void RUN_GreenBlock(int nType, int StartRow, int StartCol)
+{
+	int EndRow, EndCol;
+	int Candidate1, Candidate2;
+
+	if (nType == 1)
+	{
+		Candidate1 = Check_GreenBlock(StartRow, StartCol);
+
+		if (Candidate1 == -1) return;
+		
+		nGreen[Candidate1][StartCol] = 1;
+	}
+	else if (nType == 2)
+	{
+		Candidate1 = Check_GreenBlock(StartRow, StartCol);
+		if (Candidate1 == -1) return;
+
+		Candidate2 = Check_GreenBlock(StartRow, StartCol + 1);
+		if (Candidate2 == -1) return;
+
+		EndRow = min(Candidate1, Candidate2);
+		nGreen[EndRow][StartCol] = 1;
+		nGreen[EndRow][StartCol + 1] = 1;
+
+	}
+	else if (nType == 3)
+	{
+		Candidate1 = Check_GreenBlock(StartRow + 1, StartCol);
+
+		if (Candidate1 == -1) return;
+		else if (Candidate1 == 0)
+		{
+			nGreen[0][StartCol] = 1;
+		}
+
+		else
+		{
+			nGreen[Candidate1][StartCol] = 1;
+			nGreen[Candidate1 - 1][StartCol] = 1;
+		}
+	}
+
+}
+
+int Check_BlueBlock(int nCheckRow, int nCheckCol)
+{
+	if (nBlue[nCheckRow][0] >= 1) return -1;
+
+	for (int nCol = 0; nCol <= 4; nCol++)
+	{
+		if (nBlue[nCheckRow][nCol + 1] >= 1) return nCol;
+	}
+
+	return 5;
+}
+
+void RUN_BlueBlock(int nType, int StartRow, int StartCol)
+{
+	int EndRow, EndCol;
+	int Candidate1, Candidate2;
+
+	if (nType == 1)
+	{
+		Candidate1 = Check_BlueBlock(StartRow, StartCol);
+
+		if (Candidate1 == -1) return;
+
+		nBlue[StartRow][Candidate1] = 1;
+	}
+	else if (nType == 2)
+	{
+		Candidate1 = Check_BlueBlock(StartRow, StartCol + 1);
+
+		if (Candidate1 == -1) return;
+		else if (Candidate1 == 0)
+		{
+			nBlue[StartRow][0] = 1;
+		}
+
+		else
+		{
+			nBlue[StartRow][Candidate1] = 1;
+			nBlue[StartRow][Candidate1 - 1] = 1;
+		}		   		 		
+	}
+	else if (nType == 3)
+	{
+		Candidate1 = Check_BlueBlock(StartRow, StartCol);
+		if (Candidate1 == -1) return;
+
+		Candidate2 = Check_BlueBlock(StartRow + 1, StartCol);
+		if (Candidate2 == -1) return;
+
+		EndCol = min(Candidate1, Candidate2);
+		nBlue[StartRow][EndCol] = 1;
+		nBlue[StartRow + 1][EndCol] = 1;
+	}
+}
+
+
+void Green_DownCheck()
+{
+	int nCount = 0;
+	for (int i = 0; i <= 1; i++)
+	{
+		for (int j = 0; j <= 3; j++)
+		{
+			if (nGreen[i][j] >= 1)
+			{
+				nCount++;
+				break;
+			}
+		}
+	}
+
+	if (nCount == 1)
+	{
+		Green_Delete(5);
+	}
+	if (nCount == 2)
+	{
+		Green_Delete(5);
+		Green_Delete(5);
+	}
+
+}
+
+void Blue_DownCheck()
+{
+	int nCount = 0;
+	for (int j = 0; j <= 1; j++)
+	{
+		for (int i = 0; i <= 3; i++)
+		{
+			if (nBlue[i][j] >= 1)
+			{
+				nCount++;
+				break;
+			}
+		}
+	}
+
+	if (nCount == 1)
+	{
+		Blue_Delete(5);
+	}
+	if (nCount == 2)
+	{
+		Blue_Delete(5);
+		Blue_Delete(5);
+	}
+
+}
+
+
+void CheckSum()
+{
+	for (int i = 0; i <= 5; i++)
+	{
+		for (int j = 0; j <= 3; j++)
+		{
+			if (nGreen[i][j] >= 1) nAnswer++;
+		}
+	}
+
+
+	for (int j = 0; j <= 5; j++)
+	{
+		for (int i = 0; i <= 3; i++)
+		{
+			if( nBlue[i][j] >=1 ) nAnswer++;
+		}
+	}
+}
+
+void Solve()
+{
+	int nVecSize = Vec.size();
+
+	int nType, nRow, nCol;
+	for (int nTime = 0; nTime < nVecSize; nTime++)
+	{
+		nType = Vec[nTime].nType;
+		nRow = Vec[nTime].nRow;
+		nCol = Vec[nTime].nCol;
+
+		//블럭내리기
+		RUN_GreenBlock(nType, nRow, nCol);
+		RUN_BlueBlock(nType, nRow, nCol);
+
+
+		//스코어 점검
+		Check_Score();
+
+		//0~1번에 블럭있니?
+		Green_DownCheck();
+		Blue_DownCheck();
+	}
+
+	CheckSum();
+
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+	Info Input;
+	cin >> N;
+
+	for (int i = 0; i < N; i++)
+	{
+		cin >> Input.nType >> Input.nRow >> Input.nCol;
+		Vec.push_back(Input);
+	}
+
+	Solve();
+
+	cout << nScore << "\n" << nAnswer << "\n";
+
+	return 0;
+}
