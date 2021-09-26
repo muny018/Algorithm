@@ -1,0 +1,271 @@
+//BOJ 새로운게임2 210926
+
+//문제
+// https://www.acmicpc.net/problem/17837
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+
+#define MAX 13
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+struct Info
+{
+	int nRow;
+	int nCol;
+	int nDir;
+};
+
+int N, K;
+Info NumInfo[12];
+vector <int> nVecMap[MAX][MAX];
+vector <int> CopyVec;
+int nMap[MAX][MAX] = { 0 };
+int nDebugMap[MAX][MAX] = { 0 };
+int nAnswer = 0;
+int dx[] = { 1,-1,0,0 };
+int dy[] = { 0,0,-1,1 };
+
+
+int Find_Me(int nIdx)
+{
+	int nRow = NumInfo[nIdx].nRow;
+	int nCol = NumInfo[nIdx].nCol;
+
+	int nVecSize = nVecMap[nRow][nCol].size();
+
+
+	for (int i = 0; i < nVecSize; i++)
+	{
+		CopyVec.push_back(nVecMap[nRow][nCol].at(i));
+	}
+
+
+	for (int i = 0; i < nVecSize; i++)
+	{
+		if (nVecMap[nRow][nCol].at(i) == nIdx)
+		{
+			return i;
+		}
+
+	}
+
+
+	return -1;
+}
+
+bool Check_Horse()
+{
+	int nVecSize;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			nVecSize = nVecMap[i][j].size();
+			if (nVecSize >= 4) return true;
+		}
+	}
+	return false;
+}
+
+void Test()
+{
+	int nVecSize;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			nVecSize = nVecMap[i][j].size();
+			nDebugMap[i][j] = nVecSize;
+		}
+	}
+}
+
+void Solve()
+{
+	int nCount = 0;
+	int nRow, nCol, nDir, nNextRow, nNextCol;
+	int IdxPos, CopyVecSize;
+	while (true)
+	{
+		nCount++;
+		if (nCount > 1000)
+		{
+			nAnswer = -1;
+			break;
+		}
+
+		for (int Horse = 1; Horse <= K; Horse++)
+		{
+			//Test();
+			CopyVec.clear();
+			nRow = NumInfo[Horse].nRow;
+			nCol = NumInfo[Horse].nCol;
+			nDir = NumInfo[Horse].nDir;
+
+			nNextRow = nRow + dy[nDir];
+			nNextCol = nCol + dx[nDir];
+
+			if (nMap[nNextRow][nNextCol] == 2 || nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= N)
+			{
+				//파랑색이거나 경계 넘었을 때
+
+				//방향전환
+				if (NumInfo[Horse].nDir == 0) NumInfo[Horse].nDir = 1;
+				else if (NumInfo[Horse].nDir == 1) NumInfo[Horse].nDir = 0;
+				else if (NumInfo[Horse].nDir == 2) NumInfo[Horse].nDir = 3;
+				else if (NumInfo[Horse].nDir == 3) NumInfo[Horse].nDir = 2;
+
+				nDir = NumInfo[Horse].nDir;
+
+				nNextRow = nRow + dy[nDir];
+				nNextCol = nCol + dx[nDir];
+
+				if (nMap[nNextRow][nNextCol] == 2 || nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= N)
+				{
+					//제자리
+					continue;
+				}
+				else if (nMap[nNextRow][nNextCol] == 0) //흰색
+				{
+					//내 위치 찾기
+					IdxPos = Find_Me(Horse);
+					if (IdxPos == -1) continue;
+
+					CopyVecSize = CopyVec.size();
+					//원래 있던 자리 업데이트
+					nVecMap[nRow][nCol].clear();
+					for (int i = 0; i < IdxPos; i++)
+					{
+						nVecMap[nRow][nCol].push_back(CopyVec[i]);
+					}
+
+					//다음 자리 업데이트
+					for (int i = IdxPos; i < CopyVecSize; i++)
+					{
+						nVecMap[nNextRow][nNextCol].push_back(CopyVec[i]);
+						NumInfo[CopyVec[i]].nRow = nNextRow;
+						NumInfo[CopyVec[i]].nCol = nNextCol;
+					}
+				}
+				else if (nMap[nNextRow][nNextCol] == 1) //빨강색
+				{
+					//내 위치 찾기
+					IdxPos = Find_Me(Horse);
+					if (IdxPos == -1) continue;
+
+					CopyVecSize = CopyVec.size();
+					//원래 있던 자리 업데이트
+					nVecMap[nRow][nCol].clear();
+					for (int i = 0; i < IdxPos; i++)
+					{
+						nVecMap[nRow][nCol].push_back(CopyVec[i]);
+					}
+
+					//다음 자리 업데이트
+					for (int i = CopyVecSize - 1; i >= IdxPos; i--)
+					{
+						nVecMap[nNextRow][nNextCol].push_back(CopyVec[i]);
+						NumInfo[CopyVec[i]].nRow = nNextRow;
+						NumInfo[CopyVec[i]].nCol = nNextCol;
+					}
+				}
+
+			}
+			else if (nMap[nNextRow][nNextCol] == 0) //흰색
+			{
+				//내 위치 찾기
+				IdxPos = Find_Me(Horse);
+				if (IdxPos == -1) continue;
+
+				CopyVecSize = CopyVec.size();
+				//원래 있던 자리 업데이트
+				nVecMap[nRow][nCol].clear();
+				for (int i = 0; i < IdxPos; i++)
+				{
+					nVecMap[nRow][nCol].push_back(CopyVec[i]);
+				}
+
+				//다음 자리 업데이트
+				for (int i = IdxPos; i < CopyVecSize; i++)
+				{
+					nVecMap[nNextRow][nNextCol].push_back(CopyVec[i]);
+					NumInfo[CopyVec[i]].nRow = nNextRow;
+					NumInfo[CopyVec[i]].nCol = nNextCol;
+				}
+			}
+			else if (nMap[nNextRow][nNextCol] == 1) //빨강색
+			{
+				//내 위치 찾기
+				IdxPos = Find_Me(Horse);
+				if (IdxPos == -1) continue;
+
+				CopyVecSize = CopyVec.size();
+				//원래 있던 자리 업데이트
+				nVecMap[nRow][nCol].clear();
+				for (int i = 0; i < IdxPos; i++)
+				{
+					nVecMap[nRow][nCol].push_back(CopyVec[i]);
+				}
+
+				//다음 자리 업데이트
+				for (int i = CopyVecSize - 1; i >= IdxPos; i--)
+				{
+					nVecMap[nNextRow][nNextCol].push_back(CopyVec[i]);
+					NumInfo[CopyVec[i]].nRow = nNextRow;
+					NumInfo[CopyVec[i]].nCol = nNextCol;
+				}
+			}
+
+			if (Check_Horse() == true)
+			{
+				nAnswer = nCount;
+				return;
+			}
+		}
+
+
+	
+
+	}
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+	Info Input;
+	cin >> N >> K;
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			cin >> nMap[i][j];
+		}
+	}
+
+
+	for (int i = 1; i <= K; i++)
+	{
+		cin >> Input.nRow >> Input.nCol >> Input.nDir;
+		Input.nRow--;
+		Input.nCol--;
+		Input.nDir--;
+		NumInfo[i] = Input;
+		nVecMap[Input.nRow][Input.nCol].push_back(i);
+	}
+
+	Solve();
+
+
+	cout << nAnswer << "\n";
+
+	return 0;
+}
