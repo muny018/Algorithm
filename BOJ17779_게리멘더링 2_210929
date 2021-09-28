@@ -1,0 +1,295 @@
+//BOJ17779_게리멘더링 2_210929
+
+//문제
+//
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+
+#define MAX 21 
+
+#include <iostream>
+#include <cstring>
+#include <algorithm>
+#include <vector>
+using namespace std;
+
+int nMap[MAX][MAX] = { 0 };
+int nArea[MAX][MAX] = { 0 };
+int N;
+int nAnswer = 9999999;
+
+struct Pos
+{
+	int nRow;
+	int nCol;
+};
+Pos Top, Left, Right, Bottom;
+
+int dx[] = { 1,-1,-1,1 };
+int dy[] = { 1,1,-1,-1 };
+
+void CalcPopulation()
+{
+	int nSum[6] = { 0 };
+	vector <int> Vec;
+
+	for (int i = 1; i <= N; i++)
+	{
+		for (int j = 1; j <= N; j++)
+		{
+			if (nArea[i][j] == 1)
+			{
+				nSum[1] += nMap[i][j];
+			}
+			else if (nArea[i][j] == 2)
+			{
+				nSum[2] += nMap[i][j];
+			}
+			else if (nArea[i][j] == 3)
+			{
+				nSum[3] += nMap[i][j];
+			}
+			else if (nArea[i][j] == 4)
+			{
+				nSum[4] += nMap[i][j];
+			}
+			else if (nArea[i][j] == 5)
+			{
+				nSum[5] += nMap[i][j];
+			}
+		}
+	}
+
+	for (int i = 1; i <= 5; i++)
+	{
+		Vec.push_back(nSum[i]);
+	}
+	
+	sort(Vec.begin(), Vec.end());
+
+	int nVecSize = Vec.size();
+
+	//차이 
+	int Diff = Vec[nVecSize - 1] - Vec[0];
+
+	//차이 최소값 저장
+	if (nAnswer > Diff)
+	{
+		nAnswer = Diff;
+	}
+
+
+
+}
+
+void Make_Area(int x, int y, int d1, int d2)
+{
+	int nNextRow = Top.nRow;
+	int nNextCol = Top.nCol;
+	int nDir;
+	//5번 영역 - 상단 -> 우측    0번
+	nDir = 0;
+	while (true)
+	{
+		nArea[nNextRow][nNextCol] = 5;
+
+		nNextRow = nNextRow + dy[nDir];
+		nNextCol = nNextCol + dx[nDir];
+
+		if (nNextRow == Right.nRow && nNextCol == Right.nCol) break;
+	}
+
+	//5번 영역 - 우측 -> 하단    1번
+	nDir = 1;
+	while (true)
+	{
+		nArea[nNextRow][nNextCol] = 5;
+
+		nNextRow = nNextRow + dy[nDir];
+		nNextCol = nNextCol + dx[nDir];
+
+		if (nNextRow == Bottom.nRow && nNextCol == Bottom.nCol) break;
+	}
+
+	//5번 영역 - 하단 -> 좌측    2번
+	nDir = 2;
+	while (true)
+	{
+		nArea[nNextRow][nNextCol] = 5;
+
+		nNextRow = nNextRow + dy[nDir];
+		nNextCol = nNextCol + dx[nDir];
+
+		if (nNextRow == Left.nRow && nNextCol == Left.nCol) break;
+	}
+
+	//5번 영역 - 좌측 -> 상단    3번
+	nDir = 3;
+	while (true)
+	{
+		nArea[nNextRow][nNextCol] = 5;
+
+		nNextRow = nNextRow + dy[nDir];
+		nNextCol = nNextCol + dx[nDir];
+
+		if (nNextRow == Top.nRow && nNextCol == Top.nCol) break;
+	}
+
+	//5번 영역 - 구멍채우기
+	bool flag = false;
+	for (int nRow = Top.nRow + 1; nRow < Bottom.nRow; nRow++)
+	{
+		flag = false;
+		for (int nCol = Left.nCol; nCol <= Right.nCol; nCol++)
+		{
+
+			if (flag == true && nArea[nRow][nCol] == 5)
+			{
+				flag = false;
+				break;
+			}
+			else if (flag == false && nArea[nRow][nCol] == 5)
+			{
+				flag = true;
+				continue;
+			} 
+			else if (flag == true)
+			{
+				nArea[nRow][nCol] = 5; 
+			}
+		}
+	}
+
+	//1번 영역
+	for (int r = 1; r < x + d1; r++)
+	{
+		for (int c = 1; c <= y; c++)
+		{
+			if (nArea[r][c] != 0) continue; 
+
+			nArea[r][c] = 1;
+		}
+	}
+
+	//2번 영역
+	for (int r = 1; r <= x + d2; r++)
+	{
+		for (int c = y+1; c <= N; c++)
+		{
+			if (nArea[r][c] != 0) continue;
+
+			nArea[r][c] = 2;
+		}
+	}
+
+	//3번 영역
+	for (int r = x + d1; r <= N; r++)
+	{
+		for (int c =  1; c <= y - d1 + d2 -1; c++)
+		{
+			if (nArea[r][c] != 0) continue;
+
+			nArea[r][c] = 3;
+		}
+	}
+
+	//4번 영역
+	for (int r = x + d2 + 1; r <= N; r++)
+	{
+		for (int c = y - d1 +d2 ; c <= N; c++)
+		{
+			if (nArea[r][c] != 0) continue;
+
+			nArea[r][c] = 4;
+		}
+	}
+	
+}
+
+bool CheckBorder()
+{
+	if (Top.nRow <= 0 || Top.nRow > N || Top.nCol <= 0 || Top.nCol > N ) return true;
+	if (Left.nRow <= 0 || Left.nRow > N || Left.nCol <= 0 || Left.nCol > N) return true;
+	if (Right.nRow <= 0 || Right.nRow > N || Right.nCol <= 0 || Right.nCol > N) return true;
+	if (Bottom.nRow <= 0 || Bottom.nRow > N || Bottom.nCol <= 0 || Bottom.nCol > N) return true;
+
+	return false;
+}
+
+void InitArea()
+{
+	for (int i = 1; i <= N; i++)
+	{
+		for (int j = 1; j <= N; j++)
+		{
+			nArea[i][j] = 0;
+		}
+	}
+}
+
+void Solve()
+{
+	
+	for (int x = 1; x< N; x++)
+	{
+		for (int y = 1; y < N; y++)
+		{
+			for (int d1 = 1; d1 < N; d1++)
+			{
+				for (int d2 = 1; d2 < N; d2++)
+				{
+					Top.nRow = x;
+					Top.nCol = y;
+
+					Left.nRow = x + d1;
+					Left.nCol = y - d1;
+					
+					Right.nRow = x + d2;
+					Right.nCol = y + d2;
+					
+					Bottom.nRow = x + d1 + d2;
+					Bottom.nCol = y - d1 + d2;
+
+					//경계선 넘어가면 예외처리
+					if (CheckBorder() == true) continue;
+					
+					//초기화
+					InitArea();
+
+					//1~5번 영역 채우기
+					Make_Area(x,y,d1,d2);
+
+					//최소값 구하기
+					CalcPopulation();
+					
+				}
+			}
+		}
+	}
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+
+	cin >> N;
+	for (int i = 1; i <= N; i++)
+	{
+		for (int j = 1; j <= N; j++)
+		{
+			cin >> nMap[i][j];
+		}
+	}
+
+	Solve();
+
+	cout << nAnswer << "\n";
+
+
+	return 0;
+}
