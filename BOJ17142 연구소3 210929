@@ -1,0 +1,160 @@
+//BOJ17142 연구소3 210929
+
+//문제
+//https://www.acmicpc.net/problem/17142
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+
+#define MAX 51
+
+#include <iostream>
+#include <queue>
+#include <vector>
+using namespace std;
+
+struct POS
+{
+	int nRow;
+	int nCol;
+};
+vector <POS> Vec;
+int N, M;
+int nMap[MAX][MAX] = { 0 };
+
+int nAnswer = 999999;
+int nVirusSize;
+bool nVirusSelect[11] = { false };
+int dx[] = { -1,0,1,0 };
+int dy[] = { 0,-1,0,1 };
+int nBlankCount = 0;
+
+
+void BFS()
+{
+	bool bVisited[MAX][MAX] = { false };
+
+	queue <POS> Que;
+	POS PosInfo;
+	for (int i = 0; i < nVirusSize; i++)
+	{
+		if (nVirusSelect[i] == true)
+		{
+			Que.push(Vec[i]);
+			bVisited[Vec[i].nRow][Vec[i].nCol] = true;
+		}
+	}
+
+	int nTime = 0;
+	int nVirusCount = 0;
+
+	int nCurRow, nCurCol, nNextRow, nNextCol, nQueSize;
+	while (!Que.empty())
+	{
+		nTime++;
+		nQueSize = Que.size();
+		
+		if (nVirusCount == nBlankCount) break;
+
+		for (int i = 0; i < nQueSize; i++)
+		{
+			nCurRow = Que.front().nRow;
+			nCurCol = Que.front().nCol;
+			Que.pop();
+
+			for (int idx = 0; idx < 4; idx++)
+			{
+				nNextRow = nCurRow + dy[idx];
+				nNextCol = nCurCol + dx[idx];
+
+				if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= N) continue;
+				if (bVisited[nNextRow][nNextCol] == true ) continue;
+				if (nMap[nNextRow][nNextCol] != 1  )
+				{
+					bVisited[nNextRow][nNextCol] = true;
+					PosInfo.nRow = nNextRow;
+					PosInfo.nCol = nNextCol;
+					Que.push(PosInfo);
+					if (nMap[nNextRow][nNextCol] == 0)
+					{
+						nVirusCount++;
+					}
+					
+				}
+
+			}
+		}
+		
+	}
+	nTime--;
+
+	//
+	if (nAnswer > nTime && nVirusCount == nBlankCount)
+	{
+		nAnswer = nTime;
+	}
+	
+}
+
+void DepthFirstSearch(int nIdx, int nCount)
+{
+	if (nCount == M)
+	{
+		BFS();
+		return;
+	}
+	else if (nIdx >= nVirusSize)
+	{
+		return;
+	}
+
+	nVirusSelect[nIdx] = true;
+	DepthFirstSearch(nIdx + 1, nCount + 1);
+	nVirusSelect[nIdx] = false;
+	DepthFirstSearch(nIdx + 1, nCount);
+	
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+
+	cin >> N >> M;
+
+	POS Input;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			cin >> nMap[i][j];
+			if (nMap[i][j] == 2)
+			{
+				Input.nRow = i;
+				Input.nCol = j;
+				Vec.push_back(Input);
+			}
+			else if (nMap[i][j] == 0)
+			{
+				nBlankCount++;
+			}
+		}
+	}
+
+	nVirusSize = Vec.size();
+
+	DepthFirstSearch(0, 0);
+
+	if (nAnswer == 999999)
+	{
+		cout << "-1" << "\n";
+	}
+	else
+	{
+		cout << nAnswer << "\n";
+	}
+	return 0;
+}
