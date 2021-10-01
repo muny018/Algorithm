@@ -1,0 +1,160 @@
+//BOJ17140 이차원 배열과 연산 211002
+
+//문제
+//https://www.acmicpc.net/problem/17140
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+#define MAX 101
+
+#include <iostream>
+#include <vector>
+#include <cstring>
+#include <algorithm>
+using namespace std;
+
+int r, c, k;
+int nAnswer = -1;
+int nNum[MAX] = { 0 };
+int nMap[MAX][MAX] = { 0 };
+int nCopyMap[MAX][MAX] = { 0 };
+int nRowLength, nColLength;
+
+void RowProcess()
+{
+	int nVecSize;
+	for (int i = 1; i <= nRowLength; i++)
+	{
+		vector <pair<int, int>> Vec;
+		memset(nNum, 0, sizeof(nNum));
+
+		for (int j = 1; j <= nColLength; j++)
+		{
+			nNum[nCopyMap[i][j]]++;
+		}
+
+		for (int j = 1; j <= 100; j++)
+		{
+			if (nNum[j] == 0) continue;
+			Vec.push_back(make_pair(nNum[j], j));
+		}
+
+		sort(Vec.begin(), Vec.end());
+		nVecSize = Vec.size();
+
+		int idx = 1;
+		for (int j = 0; j < nVecSize; j++)
+		{
+			if (idx > 100) break;
+			nMap[i][idx] = Vec[j].second;
+			idx++;
+
+			if (idx > 100) break;
+			nMap[i][idx] = Vec[j].first;
+			idx++;
+		}
+
+		if (nColLength < idx)
+		{
+			nColLength = idx;
+		}
+	}
+}
+
+void ColProcess()
+{
+	int nVecSize;
+	
+	for (int j = 1; j <= nColLength; j++)
+	{
+		vector <pair<int, int>> Vec;
+		memset(nNum, 0, sizeof(nNum));
+
+		for (int i = 1; i <= nRowLength; i++)
+		{
+			nNum[nCopyMap[i][j]]++;
+		}
+
+		for (int i = 1; i <= 100; i++)
+		{
+			if (nNum[i] == 0) continue;
+			Vec.push_back(make_pair(nNum[i], i));
+		}
+
+		sort(Vec.begin(), Vec.end());
+		nVecSize = Vec.size();
+
+		int idx = 1;
+		for (int i = 0; i < nVecSize; i++)
+		{
+			if (idx > 100) break;
+			nMap[idx][j] = Vec[i].second;
+			idx++;
+
+			if (idx > 100) break;
+			nMap[idx][j] = Vec[i].first;
+			idx++;
+		}
+
+		if (nRowLength < idx)
+		{
+			nRowLength = idx;
+		}
+	}
+}
+
+void Solve()
+{
+	for (int nTime = 0; nTime <= 100; nTime++)
+	{
+		if (nMap[r][c] == k)
+		{
+			nAnswer = nTime;
+			return;
+		}
+
+		memcpy(nCopyMap, nMap, sizeof(nMap));
+		memset(nMap, 0, sizeof(nMap));
+
+		if (nRowLength >= nColLength)
+		{
+			RowProcess();
+		}
+		else
+		{
+			ColProcess();
+		}
+		
+
+
+	}
+
+
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+	cin >> r >> c >> k;
+
+	for (int i = 1; i <= 3; i++)
+	{
+		for (int j = 1; j <= 3; j++)
+		{
+			cin >> nMap[i][j];
+		}
+	}
+
+	nRowLength = 3;
+	nColLength = 3;
+
+	Solve();
+
+	cout << nAnswer << "\n";
+
+	return 0;
+}
