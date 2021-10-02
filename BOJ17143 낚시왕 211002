@@ -1,0 +1,215 @@
+//BOJ17143 낚시왕 211002
+
+//문제
+//https://www.acmicpc.net/problem/17143
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+#define MAX 101
+
+#include <iostream>
+#include <vector>
+#include <cstring>
+using namespace std;
+
+struct Shark
+{
+	int nRow;
+	int nCol;
+	int nSpeed;
+	int nDir;
+	int nSize;
+	bool IsLive;
+};
+
+vector <Shark> SharkVec;
+int nMap[MAX][MAX] = { 0 };
+int nCopyMap[MAX][MAX] = { 0 };
+int nAnswer = 0;
+int dx[] = { 0,0,1,-1 };
+int dy[] = { -1,1,0,0 };
+int R, C, M;
+
+void Move_Shark()
+{
+	for (int i = 1; i <= R; i++)
+	{
+		for (int j = 1; j <= C; j++)
+		{
+			nCopyMap[i][j] = 0;
+		}
+	}
+
+	int nVecSize = SharkVec.size();
+
+	int nRow, nCol, nSpeed, nDir, nSize, nNextRow, nNextCol;
+	for (int nShark = 1; nShark < nVecSize; nShark++)
+	{
+		if (SharkVec[nShark].IsLive == false) continue;
+
+		nRow = SharkVec[nShark].nRow;
+		nCol = SharkVec[nShark].nCol;
+		nSpeed = SharkVec[nShark].nSpeed;
+		nDir = SharkVec[nShark].nDir;
+		nSize = SharkVec[nShark].nSize;
+
+		if (nDir == 0 || nDir == 1)
+		{
+			nSpeed = nSpeed % (R * 2 - 2);
+		}
+		else if (nDir == 2 || nDir == 3)
+		{
+			nSpeed = nSpeed % (C * 2 - 2);
+		}
+		nNextRow = nRow;
+		nNextCol = nCol;
+		
+		while (true)
+		{
+			
+			if (nSpeed <= 0)
+			{
+				if (nCopyMap[nNextRow][nNextCol] > 0)
+				{
+					int Compare_Size = SharkVec[nCopyMap[nNextRow][nNextCol]].nSize;
+					if (Compare_Size > nSize)
+					{
+						SharkVec[nShark].IsLive = false;
+						
+					}
+					else
+					{
+						SharkVec[nCopyMap[nNextRow][nNextCol]].IsLive = false;
+						nCopyMap[nNextRow][nNextCol] = nShark;
+						
+						SharkVec[nShark].nRow = nNextRow;
+						SharkVec[nShark].nCol = nNextCol;
+						SharkVec[nShark].nDir = nDir;
+					}
+				}
+				else
+				{
+					nCopyMap[nNextRow][nNextCol] = nShark;
+					SharkVec[nShark].nRow = nNextRow;
+					SharkVec[nShark].nCol = nNextCol;
+					SharkVec[nShark].nDir = nDir;
+				}
+				break;
+			}
+
+
+			nNextRow = nNextRow + dy[nDir];
+			nNextCol = nNextCol + dx[nDir];
+
+			if (nNextRow > R)
+			{
+				nNextRow = R - 1;
+				nDir = 0;
+			}
+			else if (nNextRow <= 0)
+			{
+				nNextRow = 2;
+				nDir = 1;
+			}
+
+			if (nNextCol > C)
+			{
+				nNextCol = C - 1;
+				nDir = 3;
+			}
+			else if (nNextCol <= 0)
+			{
+				nNextCol = 2;
+				nDir = 2;
+			}
+
+			nSpeed--;
+			
+		}
+
+	}
+
+
+
+}
+
+void UpdateSharkPos()
+{
+	int nVecSize = SharkVec.size();
+
+	for (int i = 1; i <= R; i++)
+	{
+		for (int j = 1; j <= C; j++)
+		{
+			nMap[i][j] = 0;
+		}
+	}
+
+
+	for (int i = 1; i < nVecSize; i++)
+	{
+		if (SharkVec[i].IsLive == false) continue;
+		nMap[SharkVec[i].nRow][SharkVec[i].nCol] = i;
+	}
+
+
+
+}
+
+void CatchShark(int nIdx)
+{
+	for (int i = 1; i <= R; i++)
+	{
+		if (nMap[i][nIdx] > 0)
+		{
+			int nNum = nMap[i][nIdx];
+			SharkVec[nNum].IsLive = false;
+			nAnswer += SharkVec[nNum].nSize;
+			nMap[i][nIdx] = 0;
+			break;
+		}
+	}
+
+}
+
+void Solve()
+{
+	for (int j = 1; j <= C; j++)
+	{
+		UpdateSharkPos();
+
+		//상어잡기
+		CatchShark(j);
+
+		//상어 이동
+		Move_Shark();
+	}
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+	cin >> R >> C >> M;
+	Shark Input = { 0 };
+	SharkVec.push_back(Input);
+
+	for (int i = 0; i < M; i++)
+	{
+		cin >> Input.nRow >> Input.nCol >> Input.nSpeed >> Input.nDir >> Input.nSize;
+		Input.nDir--;
+		Input.IsLive = true;
+		SharkVec.push_back(Input);
+	}
+
+
+	Solve();
+
+	cout << nAnswer << "\n";
+
+	return 0;
+	
+}
