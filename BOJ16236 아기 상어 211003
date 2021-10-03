@@ -1,0 +1,162 @@
+//BOJ 16236 아기 상어 211003
+
+//문제
+//https://www.acmicpc.net/problem/16236
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+#define MAX 21
+
+#include <iostream>
+#include <queue>
+#include <cstring>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+struct POS
+{
+	int nRow;
+	int nCol;
+	int nSize;
+};
+POS Shark;
+int dy[] = { -1,0,0,1 };
+int dx[] = { 0,-1,1,0 };
+vector <pair<int, int>> Vec;
+
+int N;
+int nMap[MAX][MAX] = { 0 };
+int nCopyMap[MAX][MAX] = { 0 };
+int nAnswer = 0;
+bool Flag = false;
+int nEatCount = 0;
+
+void BFS()
+{
+	Vec.clear();
+	bool bVisited[MAX][MAX] = { false };
+	queue<pair<int, int>> Que;
+	Que.push(make_pair(Shark.nRow, Shark.nCol));
+	bVisited[Shark.nRow][Shark.nCol] = true;
+	int nSharkSize = Shark.nSize;
+
+	int nDistance = 0;
+	int nShortDist = 999999;
+	bool WhileFlag = false;
+	int nCurRow, nCurCol, nNextRow, nNextCol, nQueSize;
+	while (!Que.empty())
+	{
+		if (WhileFlag == true) break;
+		nDistance++; 
+		nQueSize = Que.size();	
+	
+		for (int nTime = 0; nTime < nQueSize; nTime++)
+		{
+			nCurRow = Que.front().first;
+			nCurCol = Que.front().second;
+			Que.pop();
+
+			for (int idx = 0; idx < 4; idx++)
+			{
+				nNextRow = nCurRow + dy[idx];
+				nNextCol = nCurCol + dx[idx];
+
+				if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= N) continue;
+				if (nMap[nNextRow][nNextCol] > nSharkSize || bVisited[nNextRow][nNextCol] == true) continue;
+
+				if (nMap[nNextRow][nNextCol] <= nSharkSize)
+				{
+					bVisited[nNextRow][nNextCol] = true;
+					if (nMap[nNextRow][nNextCol] == 0 || nMap[nNextRow][nNextCol] == nSharkSize)
+					{
+						Que.push(make_pair(nNextRow, nNextCol));
+					}
+					else if (nMap[nNextRow][nNextCol] < nSharkSize)
+					{
+						if (nShortDist > nDistance)nShortDist = nDistance;
+						else if (nShortDist < nDistance) continue;
+
+						WhileFlag = true;
+						Vec.push_back(make_pair(nNextRow, nNextCol));
+					}
+					
+
+				}
+
+			}
+		}
+		
+	}
+
+	if (WhileFlag == true)
+	{
+		sort(Vec.begin(), Vec.end());
+
+		int nDstRow = Vec[0].first;
+		int nDstCol = Vec[0].second;
+
+		nMap[Shark.nRow][Shark.nCol] = 0;
+		nMap[nDstRow][nDstCol] = 9;
+
+		Shark.nRow = nDstRow;
+		Shark.nCol = nDstCol;
+
+		nEatCount++;
+		if (nSharkSize <= nEatCount)
+		{
+			Shark.nSize++;
+			nEatCount = 0;
+		}
+		Flag = true;
+		nAnswer += nDistance;
+
+	}
+
+
+}
+
+void Solve()
+{
+	while (true)
+	{
+		Flag = false;
+
+		BFS();
+
+		if (Flag == false)
+		{
+			return;
+		}
+	}
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+	cin >> N;
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			cin >> nMap[i][j];
+
+			if (nMap[i][j] == 9)
+			{
+				Shark.nRow = i;
+				Shark.nCol = j;
+				Shark.nSize = 2;
+			}
+		}				
+	}
+
+	Solve();
+	
+	cout << nAnswer << "\n";
+	return 0;
+}
