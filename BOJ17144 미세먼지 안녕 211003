@@ -1,0 +1,336 @@
+//BOJ17144 미세먼지 안녕 211003
+
+//문제
+//https://www.acmicpc.net/problem/17144
+
+//해설
+//https://www.acmicpc.net/board/view/48800
+
+#define _CRT_SECURE_NO_WARNINGS
+#define MAX 51
+
+#include <iostream>
+#include <vector>
+#include <cstring>
+using namespace std; 
+
+struct Pos
+{
+	int nRow;
+	int nCol;
+};
+
+Pos Purifier[2];
+int R, C, T;
+
+int nMap[MAX][MAX] = { 0 };
+int nCopyMap[MAX][MAX] = { 0 };
+int nAnswer = 0;
+int dx[] = { -1,0,1,0 };
+int dy[] = { 0,-1,0,1 };
+
+void Init()
+{
+	for (int i = 0; i < R; i++)
+	{
+		for (int j = 0; j < C; j++)
+		{
+			nCopyMap[i][j] = nMap[i][j];
+			nMap[i][j] = 0;
+		}
+	}
+
+	for (int i = 0; i < 2; i++)
+	{
+		int nRow = Purifier[i].nRow;
+		int nCol = Purifier[i].nCol;
+		nMap[nRow][nCol] = -1;
+	}
+}
+
+void Move_Dust()
+{
+	Init();
+
+	for (int i = 0; i < R; i++)
+	{
+		for (int j = 0; j < C; j++)
+		{
+			nMap[i][j] = nCopyMap[i][j];
+		}
+	}
+
+	vector <int> Vec;
+
+	int nPuriRow, nPuriCol, nDir, nNextRow, nNextCol, nIdx;
+
+//@@윗동네, 반시계방향@@
+	nPuriRow = Purifier[0].nRow;
+	nPuriCol = Purifier[0].nCol;
+
+	//테두리 벡터에 담기
+
+	//우측
+	nNextRow = nPuriRow;
+	nNextCol = nPuriCol;
+	nDir = 2;
+	for (int i = 1; i <= C - 1; i++)
+	{
+		nNextRow = nNextRow + dy[nDir];
+		nNextCol = nNextCol + dx[nDir];
+		Vec.push_back(nCopyMap[nNextRow][nNextCol]);
+	}
+
+	//윗
+	nDir = 1;
+	for (int i = 1; i <= nPuriRow; i++)
+	{
+		nNextRow = nNextRow + dy[nDir];
+		nNextCol = nNextCol + dx[nDir];
+		Vec.push_back(nCopyMap[nNextRow][nNextCol]);
+	}
+
+	//좌측
+	nDir = 0;
+	for (int i = 1; i <= C - 1; i++)
+	{
+		nNextRow = nNextRow + dy[nDir];
+		nNextCol = nNextCol + dx[nDir];
+		Vec.push_back(nCopyMap[nNextRow][nNextCol]);
+	}
+
+	//아래
+	nDir = 3;
+	for (int i = 1; i <= nPuriRow-1; i++)
+	{
+		nNextRow = nNextRow + dy[nDir];
+		nNextCol = nNextCol + dx[nDir];
+		Vec.push_back(nCopyMap[nNextRow][nNextCol]);
+	}
+
+	//붙여넣기
+
+	//우측
+	nNextRow = nPuriRow;
+	nNextCol = nPuriCol+1;
+	nMap[nNextRow][nNextCol] = 0;
+	nDir = 2;
+	nIdx = 0;
+	for (int i = 1; i <= C - 2; i++)
+	{
+		nNextRow = nNextRow + dy[nDir];
+		nNextCol = nNextCol + dx[nDir];
+		nMap[nNextRow][nNextCol] = Vec[nIdx];
+		nIdx++;
+	}
+
+	//윗
+	nDir = 1;
+	for (int i = 1; i <= nPuriRow; i++)
+	{
+		nNextRow = nNextRow + dy[nDir];
+		nNextCol = nNextCol + dx[nDir];
+		nMap[nNextRow][nNextCol] = Vec[nIdx];
+		nIdx++;
+	}
+
+	//좌측
+	nDir = 0;
+	for (int i = 1; i <= C - 1; i++)
+	{
+		nNextRow = nNextRow + dy[nDir];
+		nNextCol = nNextCol + dx[nDir];
+		nMap[nNextRow][nNextCol] = Vec[nIdx];
+		nIdx++;
+	}
+
+	//아래
+	nDir = 3;
+	for (int i = 1; i <= nPuriRow-1; i++)
+	{
+		nNextRow = nNextRow + dy[nDir];
+		nNextCol = nNextCol + dx[nDir];
+		nMap[nNextRow][nNextCol] = Vec[nIdx];
+		nIdx++;
+	}
+
+
+
+//@@아랫동네, 시계방향@@
+	Vec.clear();
+	nPuriRow = Purifier[1].nRow;
+	nPuriCol = Purifier[1].nCol;
+
+	//우측
+	nNextRow = nPuriRow;
+	nNextCol = nPuriCol;
+	nDir = 2;
+	for (int i = 1; i <= C - 1; i++)
+	{
+		nNextRow = nNextRow + dy[nDir];
+		nNextCol = nNextCol + dx[nDir];
+		Vec.push_back(nCopyMap[nNextRow][nNextCol]);
+	}
+
+
+	//아래
+	nDir = 3;
+	for (int i = 1; i <= R - nPuriRow -1; i++)
+	{
+		nNextRow = nNextRow + dy[nDir];
+		nNextCol = nNextCol + dx[nDir];
+		Vec.push_back(nCopyMap[nNextRow][nNextCol]);
+	}
+
+	//좌측
+	nDir = 0;
+	for (int i = 1; i <= C - 1; i++)
+	{
+		nNextRow = nNextRow + dy[nDir];
+		nNextCol = nNextCol + dx[nDir];
+		Vec.push_back(nCopyMap[nNextRow][nNextCol]);
+	}
+
+	//윗
+	nDir = 1;
+	for (int i = 1; i <= R - nPuriRow - 2; i++)
+	{
+		nNextRow = nNextRow + dy[nDir];
+		nNextCol = nNextCol + dx[nDir];
+		Vec.push_back(nCopyMap[nNextRow][nNextCol]);
+	}
+
+	//붙여넣기
+	//우측
+	nNextRow = nPuriRow;
+	nNextCol = nPuriCol + 1;
+	nMap[nNextRow][nNextCol] = 0;
+	nDir = 2;
+	nIdx = 0;
+	for (int i = 1; i <= C - 2; i++)
+	{
+		nNextRow = nNextRow + dy[nDir];
+		nNextCol = nNextCol + dx[nDir];
+		nMap[nNextRow][nNextCol] = Vec[nIdx];
+		nIdx++;
+	}
+
+	//아래
+	nDir = 3;
+	for (int i = 1; i <= R - nPuriRow - 1; i++)
+	{
+		nNextRow = nNextRow + dy[nDir];
+		nNextCol = nNextCol + dx[nDir];
+		nMap[nNextRow][nNextCol] = Vec[nIdx];
+		nIdx++;
+	}
+
+	//좌측
+	nDir = 0;
+	for (int i = 1; i <= C - 1; i++)
+	{
+		nNextRow = nNextRow + dy[nDir];
+		nNextCol = nNextCol + dx[nDir];
+		nMap[nNextRow][nNextCol] = Vec[nIdx];
+		nIdx++;
+	}
+
+	//윗
+	nDir = 1;
+	for (int i = 1; i <= R - nPuriRow - 2; i++)
+	{
+		nNextRow = nNextRow + dy[nDir];
+		nNextCol = nNextCol + dx[nDir];
+		nMap[nNextRow][nNextCol] = Vec[nIdx];
+		nIdx++;
+	}
+}
+
+void Diffusion()
+{
+	Init();
+
+	int nNextRow, nNextCol;
+	int nCount = 0;
+	int nNum = 0;
+	for (int i = 0; i < R; i++)
+	{
+		for (int j = 0; j < C; j++)
+		{
+			if (nCopyMap[i][j] <= 0) continue;
+			nCount = 0;
+			nNum = nCopyMap[i][j];
+
+			for (int idx = 0; idx < 4; idx++)
+			{
+				nNextRow = i + dy[idx];
+				nNextCol = j + dx[idx];
+				
+				if (nNextRow < 0 || nNextRow >= R || nNextCol < 0 || nNextCol >= C) continue;
+				if (nCopyMap[nNextRow][nNextCol] == -1) continue;
+
+				nCount++;
+				nMap[nNextRow][nNextCol] += nNum / 5;
+			}
+
+			if (nCount > 0)
+			{
+				nMap[i][j] += nNum - (nNum / 5)* nCount;
+			}
+
+		}
+	}
+}
+
+void Solve()
+{
+	for (int nTime = 0; nTime < T; nTime++)
+	{
+		//확산
+		Diffusion();
+
+		//미세먼지 이동 이동
+		Move_Dust();
+
+	}
+
+	for (int i = 0; i < R; i++)
+	{
+		for (int j = 0; j < C; j++)
+		{
+			if (nMap[i][j] == -1 || nMap[i][j] == 0) continue;
+
+			nAnswer += nMap[i][j];
+		}
+	}
+
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+	cin >> R >> C >> T; 
+
+	int nIdx = 0;
+	for (int i = 0; i < R; i++)
+	{
+		for (int j = 0; j < C; j++)
+		{
+			cin >> nMap[i][j];
+			if (nMap[i][j] == -1)
+			{
+				Purifier[nIdx].nRow = i;
+				Purifier[nIdx].nCol = j;
+				nIdx++;
+			}
+		}
+	}
+
+	Solve();
+
+	cout << nAnswer << "\n";
+
+	return 0;
+}
