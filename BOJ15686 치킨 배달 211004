@@ -1,0 +1,110 @@
+//BOJ15686 치킨 배달 211004
+
+//문제
+//https://www.acmicpc.net/problem/15686
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+#define MAX 51
+
+#include <iostream>
+#include <vector>
+#include <cstring>
+using namespace std;
+int nMap[MAX][MAX] = { 0 };
+
+vector <pair<int, int>> Home;
+vector <pair<int, int>> Chicken;
+int N, M;
+bool bVisited[15] = { 0 };
+int nAnswer = 99999999;
+int nLimitVec = 0;
+
+void CalcDistance()
+{
+	int nHomeVecSize = Home.size();
+	int nChickenVecSize = Chicken.size();
+	int nShortDistance = 9999999;
+	int nDist = 0;
+	int nResult = 0;
+
+	int HomeRow, HomeCol, ChickRow, ChickCol;
+	for (int i = 0; i < nHomeVecSize; i++)
+	{
+		nShortDistance = 9999999;
+		for (int j = 0; j < nChickenVecSize; j++)
+		{
+			if (bVisited[j] == false) continue;
+
+			HomeRow = Home[i].first;
+			HomeCol = Home[i].second;
+
+			ChickRow = Chicken[j].first;
+			ChickCol = Chicken[j].second;
+
+			nDist = abs(ChickRow - HomeRow) + abs(ChickCol - HomeCol);
+			
+			if (nShortDistance > nDist)
+			{
+				nShortDistance = nDist;
+			}
+		}
+		nResult += nShortDistance;
+
+	}
+
+	if (nAnswer > nResult)
+	{
+		nAnswer = nResult;
+	}
+}
+
+void DepthFirstSearch(int nIdx, int nCount)
+{
+	if (nCount >= M)
+	{
+		CalcDistance();
+		return;
+	}
+	
+	if (nIdx >= nLimitVec) return;
+	
+	bVisited[nIdx] = true;
+	DepthFirstSearch(nIdx + 1, nCount + 1);
+	bVisited[nIdx] = false;
+	DepthFirstSearch(nIdx + 1, nCount);
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+	cin >> N >> M;
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			cin >> nMap[i][j];
+			if (nMap[i][j] == 1)
+			{
+				Home.push_back(make_pair(i, j));
+			}
+			else if (nMap[i][j] == 2)
+			{
+				Chicken.push_back(make_pair(i, j));
+			}
+		}
+	}
+
+	nLimitVec = Chicken.size();
+
+	DepthFirstSearch(0, 0);
+
+	cout << nAnswer << "\n";
+
+	return 0;
+}
