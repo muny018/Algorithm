@@ -1,0 +1,122 @@
+//BOJ15685_드래곤 커브 211004
+
+//문제
+//
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+#define MAX 21
+
+#include <iostream>
+#include <vector>
+using namespace std; 
+
+struct Info
+{
+	int nRow;
+	int nCol;
+	int nDir;
+	int nGene;
+};
+
+int nMap[102][102] = { 0 };
+int nAnswer = 0;
+int N;
+vector <Info> InputVec;
+int dy[] = { 0,-1,0,1 };
+int dx[] = { 1,0,-1,0 };
+
+void DragonCurve(int nIdx)
+{
+	vector <int> nDirVec;
+	int nCurRow, nCurCol, nDir, nNextRow, nNextCol, nGene;
+
+	nCurRow = InputVec[nIdx].nRow;
+	nCurCol = InputVec[nIdx].nCol;
+	nDir = InputVec[nIdx].nDir;
+	nGene = InputVec[nIdx].nGene;
+
+	nMap[nCurRow][nCurCol] = 1;
+	nDirVec.push_back(nDir);
+
+	nNextRow = nCurRow + dy[nDir];
+	nNextCol = nCurCol + dx[nDir];
+	nMap[nNextRow][nNextCol] = 1;
+
+	int nGeneCount = 0;
+	int nVecSize = 0;
+	int nNextDir;
+
+	while (true)
+	{
+		if (nGeneCount >= nGene) break;
+		nGeneCount++;
+
+		nVecSize = nDirVec.size();
+
+		for (int i = nVecSize - 1; i >= 0; i--)
+		{
+			nDir = nDirVec[i];
+
+			nNextDir = nDir + 1;
+			if (nNextDir >= 4) nNextDir = 0;
+			nDirVec.push_back(nNextDir);
+
+			nNextRow = nNextRow + dy[nNextDir];
+			nNextCol = nNextCol + dx[nNextDir];
+			nMap[nNextRow][nNextCol] = 1;
+
+			int Stop_a = 0;
+		}
+		
+	
+
+
+
+	}
+}
+
+void Solve()
+{
+	for (int i = 0; i < N; i++)
+	{
+		DragonCurve(i);
+	}
+
+	
+	//점수계산
+	for (int i = 0; i <= 100; i++)
+	{
+		for (int j = 0; j <= 100; j++)
+		{
+			if (nMap[i][j] && nMap[i + 1][j] && nMap[i][j + 1] && nMap[i + 1][j + 1])
+			{
+				nAnswer++;
+			}
+		}
+	}
+
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+	cin >> N;
+	
+	Info Input;
+	for (int i = 0; i < N; i++)
+	{
+		cin >> Input.nCol >> Input.nRow >> Input.nDir >> Input.nGene;
+		InputVec.push_back(Input);
+	}
+
+	Solve();
+
+	cout << nAnswer << "\n";
+	
+	return 0;
+}
