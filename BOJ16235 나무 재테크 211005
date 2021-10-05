@@ -1,0 +1,177 @@
+//BOJ16235 나무 재테크 211005
+
+//문제
+// https://www.acmicpc.net/problem/16235
+
+//해설
+// 
+
+#define _CRT_SECURE_NO_WARNINGS
+#define MAX 11
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+int nMap[MAX][MAX] = { 0 };
+int nSupplyMap[MAX][MAX] = { 0 };
+int N, M, K;
+
+int dy[] = { -1,-1,-1,0,0,1,1,1 };
+int dx[] = { -1,0,1,-1,1,-1,0,1 };
+int nAnswer = 0;
+vector <int> nVecMap[MAX][MAX];
+
+void Winter()
+{
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			nMap[i][j] += nSupplyMap[i][j];
+		}
+	}
+}
+
+void Fall()
+{
+	int nVecSize, nNextRow, nNextCol;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			nVecSize = nVecMap[i][j].size();
+			if (nVecSize <= 0) continue;
+
+			for (int k = 0; k < nVecSize; k++)
+			{
+				if (nVecMap[i][j].at(k) % 5 == 0)
+				{
+					for (int nDir = 0; nDir <= 7; nDir++)
+					{
+						nNextRow = i + dy[nDir];
+						nNextCol = j + dx[nDir];
+						if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= N) continue;
+						
+						nVecMap[nNextRow][nNextCol].push_back(1);
+						
+					}
+					//break;
+				}
+			}
+		}
+	}
+}
+
+void SpringSummer()
+{
+	int nVecSize, nSourceNum, nDieAge;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			nVecSize = nVecMap[i][j].size();
+			
+			if (nVecSize <= 0) continue;
+
+			sort(nVecMap[i][j].begin(), nVecMap[i][j].end());
+			nSourceNum = nMap[i][j];
+			vector <int> NewVec;
+			nDieAge = 0;
+
+			//양분 존재
+			int nCount = 1;
+			int nIdx = 0;
+			for (int k = 1; k <= nSourceNum; k++)
+			{
+				if (nIdx >= nVecSize) break;
+
+				if (nCount >= nVecMap[i][j].at(nIdx))
+				{
+					nVecMap[i][j].at(nIdx) += 1;
+					nMap[i][j] -= nCount;
+
+					nCount = 1;
+					nIdx++;
+				}
+				else
+				{
+					nCount++;
+				}
+			}
+
+			for (int k = 0; k < nIdx; k++)
+			{
+				NewVec.push_back(nVecMap[i][j].at(k));
+			}
+
+			for (int k = nIdx; k < nVecSize; k++)
+			{
+				nDieAge = nVecMap[i][j].at(k);
+				nMap[i][j] += nDieAge / 2;
+			}
+
+			nVecMap[i][j].swap(NewVec);
+
+		}
+	}
+}
+
+void Solve()
+{
+	for (int nTime = 0; nTime < K; nTime++)
+	{
+		SpringSummer();
+
+		Fall();
+
+		Winter();
+
+		int Stop_a = 0;
+	}
+
+
+	int nVecSize;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			nVecSize = nVecMap[i][j].size();
+			nAnswer += nVecSize;
+		}
+	}
+
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+	cin >> N >> M >> K;
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			cin >> nSupplyMap[i][j];
+			nMap[i][j] = 5;
+		}	
+	}
+
+	int nRow, nCol, nAge;
+	for (int i = 0; i < M; i++)
+	{
+		cin >> nRow >> nCol >> nAge;
+		nRow--;
+		nCol--;
+		nVecMap[nRow][nCol].push_back(nAge);
+	}
+
+	Solve();
+
+	cout << nAnswer << "\n";
+	
+	return 0;
+}
