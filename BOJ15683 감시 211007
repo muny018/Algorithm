@@ -1,0 +1,302 @@
+//BOJ15683 감시 211007
+
+//문제
+// https://www.acmicpc.net/problem/15683
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+#define MAX 9
+
+#include <vector>
+#include <iostream>
+using namespace std;
+
+struct Info
+{
+	int nRow;
+	int nCol;
+	int nCamNum;
+};
+
+struct Pos
+{
+	int nRow;
+	int nCol;
+};
+vector <Info> Vec;
+int nInputMap[MAX][MAX] = { 0 };
+int nMap[MAX][MAX] = { 0 };
+int N, M;
+int nAnswer = 999999;
+int nVecSize;
+int dy[] = { -1,0,1,0 };
+int dx[] = { 0,1,0,-1 };
+int CheckCount = 0;
+
+int DirectionSetting(int nDir)
+{
+	if (nDir == 0) return 2;
+	else if (nDir == 1) return 3;
+	else if (nDir == 2) return 0;
+	else if (nDir == 3) return 1;
+}
+
+Pos Go(int nRow, int nCol, int nDir)
+{
+	int nCurRow = nRow;
+	int nCurCol = nCol;
+	int nNextRow;
+	int nNextCol;
+	Pos Result;
+
+	while (true)
+	{
+		nNextRow = nCurRow + dy[nDir];
+		nNextCol = nCurCol + dx[nDir];
+
+		if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= M)
+		{
+			Result.nRow = nCurRow;
+			Result.nCol = nCurCol;
+			return Result;
+		}
+		else if (nMap[nNextRow][nNextCol] == 6)
+		{
+			Result.nRow = nCurRow;
+			Result.nCol = nCurCol;
+			return Result;
+		}
+		else if (nMap[nNextRow][nNextCol] > 0 && nMap[nNextRow][nNextCol] <= 5)
+		{
+			nCurRow = nNextRow;
+			nCurCol = nNextCol;
+		}
+		else if (nMap[nNextRow][nNextCol] == 0 || nMap[nNextRow][nNextCol] >= 9)
+		{
+			nMap[nNextRow][nNextCol] += 9;
+			nCurRow = nNextRow;
+			nCurCol = nNextCol;
+		}
+	
+	}
+}
+
+void Back(int nStartRow, int nStartCol, int nDir, int nEndRow, int nEndCol)
+{
+	if (nEndRow == nStartRow && nEndCol == nStartCol) return;
+
+	int nCurRow = nEndRow;
+	int nCurCol = nEndCol;
+	int nNextRow, nNextCol;
+	if (nMap[nCurRow][nCurCol] >= 9)
+	{
+		nMap[nCurRow][nCurCol] -= 9;
+	}
+	
+
+	while (true)
+	{
+		nNextRow = nCurRow + dy[nDir];
+		nNextCol = nCurCol + dx[nDir];
+		
+		if (nNextRow == nStartRow && nNextCol == nStartCol)
+		{
+			return;
+		}
+		else if (nMap[nNextRow][nNextCol] > 0 && nMap[nNextRow][nNextCol] <= 5)
+		{
+			nCurRow = nNextRow;
+			nCurCol = nNextCol;
+		}
+		else if (nMap[nNextRow][nNextCol]>=9)
+		{
+			nMap[nNextRow][nNextCol] -= 9;
+			nCurRow = nNextRow;
+			nCurCol = nNextCol;
+		}
+
+	}
+
+
+}
+
+void Calc()
+{
+	int nCount = 0;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			if (nMap[i][j] == 0)
+			{
+				nCount++;
+			}
+		}
+	}
+
+	if (nAnswer > nCount)
+	{
+		nAnswer = nCount;
+	}
+}
+
+void DepthFirstSearch(int nIdx)
+{
+	if (nIdx >= nVecSize)
+	{
+		//최소값 계산
+		Calc();
+		CheckCount++;
+		if (CheckCount == 31)
+		{
+			int Stop_a = 0;
+		}
+		return;
+	}
+
+	int nCurRow = Vec[nIdx].nRow;
+	int nCurCol = Vec[nIdx].nCol;
+	int nCamNum = Vec[nIdx].nCamNum;
+	Pos PosInfo;
+	Pos PosInfo2;
+	Pos PosInfo3;
+	Pos PosInfo4;
+	int nReturnDir;
+	int nReturnDir2;
+	int nReturnDir3;
+	int nReturnDir4;
+
+	if (nCamNum == 1)
+	{
+		for (int nDir = 0; nDir < 4; nDir++)
+		{
+			nReturnDir = DirectionSetting(nDir);
+
+			PosInfo = Go(nCurRow, nCurCol, nDir);
+			DepthFirstSearch(nIdx + 1);
+			Back(nCurRow, nCurCol, nReturnDir, PosInfo.nRow, PosInfo.nCol);
+		}
+	}
+	else if (nCamNum == 2)
+	{
+		for (int nDir = 0; nDir <= 1; nDir++)
+		{
+			PosInfo = Go(nCurRow, nCurCol, nDir);
+			PosInfo2 = Go(nCurRow, nCurCol, nDir+2);
+			DepthFirstSearch(nIdx + 1);
+			Back(nCurRow, nCurCol, nDir, PosInfo2.nRow, PosInfo2.nCol);
+			Back(nCurRow, nCurCol, nDir + 2, PosInfo.nRow, PosInfo.nCol);
+		}
+	}
+	else if (nCamNum == 3)
+	{
+		for (int nDir = 0; nDir < 4; nDir++)
+		{
+			int nDir2 = nDir + 1; 
+			if (nDir2 >= 4) nDir2 = 0;
+
+			nReturnDir = DirectionSetting(nDir);
+			nReturnDir2 = DirectionSetting(nDir2);
+
+			PosInfo = Go(nCurRow, nCurCol, nDir);
+			PosInfo2 = Go(nCurRow, nCurCol, nDir2);
+			DepthFirstSearch(nIdx + 1);
+			Back(nCurRow, nCurCol, nReturnDir2, PosInfo2.nRow, PosInfo2.nCol);
+			Back(nCurRow, nCurCol, nReturnDir, PosInfo.nRow, PosInfo.nCol);
+		}
+	}
+	else if (nCamNum == 4)
+	{
+		for (int nDir = 0; nDir < 4; nDir++)
+		{
+			int nDir2 = nDir + 1;
+			if (nDir2 >= 4) nDir2 = 0;
+
+			int nDir3 = nDir2 + 1;
+			if (nDir3 >= 4) nDir3 = 0;
+
+
+			nReturnDir = DirectionSetting(nDir);
+			nReturnDir2 = DirectionSetting(nDir2);
+			nReturnDir3 = DirectionSetting(nDir3);
+
+			PosInfo = Go(nCurRow, nCurCol, nDir);
+			PosInfo2 = Go(nCurRow, nCurCol, nDir2);
+			PosInfo3 = Go(nCurRow, nCurCol, nDir3);
+			DepthFirstSearch(nIdx + 1);
+			Back(nCurRow, nCurCol, nReturnDir3, PosInfo3.nRow, PosInfo3.nCol);
+			Back(nCurRow, nCurCol, nReturnDir2, PosInfo2.nRow, PosInfo2.nCol);
+			Back(nCurRow, nCurCol, nReturnDir, PosInfo.nRow, PosInfo.nCol);
+		}
+
+	}
+	else if (nCamNum == 5)
+	{
+		nReturnDir = DirectionSetting(0);
+		nReturnDir2 = DirectionSetting(1);
+		nReturnDir3 = DirectionSetting(2);
+		nReturnDir4 = DirectionSetting(3);
+
+		PosInfo = Go(nCurRow, nCurCol, 0);
+		PosInfo2 = Go(nCurRow, nCurCol, 1);
+		PosInfo3 = Go(nCurRow, nCurCol, 2);
+		PosInfo4 = Go(nCurRow, nCurCol, 3);
+		DepthFirstSearch(nIdx + 1);
+		Back(nCurRow, nCurCol, nReturnDir4, PosInfo4.nRow, PosInfo4.nCol);
+		Back(nCurRow, nCurCol, nReturnDir3, PosInfo3.nRow, PosInfo3.nCol);
+		Back(nCurRow, nCurCol, nReturnDir2, PosInfo2.nRow, PosInfo2.nCol);
+		Back(nCurRow, nCurCol, nReturnDir, PosInfo.nRow, PosInfo.nCol);
+	}
+	
+
+}
+
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+	cin >> N >> M;
+
+	Info Input;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			cin >> nInputMap[i][j];
+			
+			if (nInputMap[i][j] > 0 && nInputMap[i][j] <= 5)
+			{
+				Input.nCamNum = nInputMap[i][j];
+				Input.nRow = i;
+				Input.nCol = j;
+				Vec.push_back(Input);
+			}
+		}
+	}
+	
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			nMap[i][j] = nInputMap[i][j];
+		}
+	}
+
+
+	nVecSize = Vec.size();
+	if (nVecSize > 0)
+	{
+		DepthFirstSearch(0);
+	}
+	else
+	{
+		Calc();
+	}
+
+	cout << nAnswer << "\n";
+	return 0;
+}
