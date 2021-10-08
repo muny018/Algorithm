@@ -1,0 +1,122 @@
+//BOJ14888 연산자 끼워넣기 211009
+
+//문제
+// https://www.acmicpc.net/problem/14888
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+#define MAX 13
+
+#include <iostream>
+using namespace std;
+
+int nMap[MAX] = { 0 };
+int nVisited[MAX] = { 0 };
+int nMathNum[5] = { 0 };
+int N;
+long long nMaxAnswer = -1000000000;
+long long nMinAnswer = 1000000000;
+
+
+void Calc()
+{
+	int nResult = nMap[0];
+	for (int i = 0; i < N - 1; i++)
+	{
+		if (nVisited[i] == 1) //더하기
+		{
+			nResult += nMap[i + 1];
+		}
+		else if (nVisited[i] == 2) //빼기
+		{
+			nResult -= nMap[i + 1];
+		}
+		else if (nVisited[i] == 3) //곱하기
+		{
+			nResult *= nMap[i + 1];
+		}
+		else if (nVisited[i] == 4) //나누기
+		{
+			nResult /= nMap[i + 1];
+		}		
+	}
+
+	if (nMaxAnswer < nResult)
+	{
+		nMaxAnswer = nResult;
+	}
+
+	if (nMinAnswer > nResult)
+	{
+		nMinAnswer = nResult;
+	}
+
+}
+
+void DepthFirstSearch(int nIdx, int Plus, int Subtract, int Multiply, int Divide)
+{
+	if (Plus == nMathNum[1] && Subtract == nMathNum[2] && Multiply == nMathNum[3] && Divide == nMathNum[4])
+	{
+		Calc();
+		return;
+	}
+	else if (nIdx >= N - 1) return;
+
+	if (Plus < nMathNum[1])
+	{
+		nVisited[nIdx] = 1;
+		DepthFirstSearch(nIdx + 1, Plus + 1, Subtract, Multiply, Divide);
+		nVisited[nIdx] = 0;
+	}
+
+	if (Subtract < nMathNum[2])
+	{
+		nVisited[nIdx] = 2;
+		DepthFirstSearch(nIdx + 1, Plus, Subtract+1, Multiply, Divide);
+		nVisited[nIdx] = 0;
+	}
+
+	if (Multiply < nMathNum[3])
+	{
+		nVisited[nIdx] = 3;
+		DepthFirstSearch(nIdx + 1, Plus, Subtract, Multiply+1, Divide);
+		nVisited[nIdx] = 0;
+	}
+
+	if (Divide < nMathNum[4])
+	{
+		nVisited[nIdx] = 4;
+		DepthFirstSearch(nIdx + 1, Plus, Subtract, Multiply, Divide+1);
+		nVisited[nIdx] = 0;
+	}
+
+
+
+
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+	cin >> N;
+
+	for (int i = 0; i < N; i++)
+	{
+		cin >> nMap[i];
+	}
+
+	for (int i = 1; i <= 4; i++)
+	{
+		cin >> nMathNum[i];
+	}
+
+	DepthFirstSearch(0, 0, 0, 0, 0);
+
+	cout << nMaxAnswer << "\n" << nMinAnswer << "\n";
+
+	return 0;
+}
