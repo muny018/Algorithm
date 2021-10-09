@@ -1,0 +1,163 @@
+//BOJ14502 연구소 211010
+
+//문제
+//
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+#define MAX 9
+
+#include <iostream>
+#include <vector>
+#include <queue>
+using namespace std;
+
+vector <pair<int, int>> vSelect;
+vector <pair<int, int>> VirusVec;
+int nMap[MAX][MAX] = { 0 };
+int nCopyMap[MAX][MAX] = { 0 };
+bool bVisited[MAX][MAX] = { 0 };
+
+int N, M;
+int nAnswer = 0;
+int dy[] = { -1,0,1,0 };
+int dx[] = { 0,1,0,-1 };
+
+
+void BFS()
+{
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			nCopyMap[i][j] = nMap[i][j];
+		}
+	}
+
+
+	queue <pair<int, int>> Que;
+	int nVecSize = VirusVec.size();
+	for (int i = 0; i < nVecSize; i++)
+	{
+		Que.push(make_pair(VirusVec[i].first, VirusVec[i].second));
+	}
+
+	int nCurRow, nCurCol, nNextRow, nNextCol;
+	while (!Que.empty())
+	{
+		nCurRow = Que.front().first;
+		nCurCol = Que.front().second;
+		Que.pop();
+
+		for (int nIdx = 0; nIdx < 4; nIdx++)
+		{
+			nNextRow = nCurRow + dy[nIdx];
+			nNextCol = nCurCol + dx[nIdx];
+
+			if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= M) continue;
+			if (nCopyMap[nNextRow][nNextCol] == 0)
+			{
+				nCopyMap[nNextRow][nNextCol] = 2;
+				Que.push(make_pair(nNextRow, nNextCol));
+			}
+		}
+
+	}
+
+	int nCount = 0;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			if (nCopyMap[i][j] == 0)
+			{
+				nCount++;
+			}
+		}
+	}
+
+	if (nAnswer < nCount)
+	{
+		nAnswer = nCount;
+	}
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+
+	cin >> N >> M;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			cin >> nMap[i][j];
+			if (nMap[i][j] == 2)
+			{
+				VirusVec.push_back(make_pair(i, j));
+			}
+		}
+	}
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			nCopyMap[i][j] = nMap[i][j];
+		}
+	}
+
+
+	for (int nRow1 = 0; nRow1 < N; nRow1++)
+	{
+		for (int nCol1 = 0; nCol1 < M; nCol1++)
+		{
+			if (nMap[nRow1][nCol1] == 0)
+			{
+				nMap[nRow1][nCol1] = 1;
+
+				for (int nRow2 = 0; nRow2 < N; nRow2++)
+				{
+					for (int nCol2 = 0; nCol2 < M; nCol2++)
+					{
+						if (nMap[nRow2][nCol2] == 0)
+						{
+							nMap[nRow2][nCol2] = 1;
+
+							for (int nRow3 = 0; nRow3 < N; nRow3++)
+							{
+								for (int nCol3 = 0; nCol3 < M; nCol3++)
+								{
+									if (nMap[nRow3][nCol3] == 0)
+									{
+										nMap[nRow3][nCol3] = 1;
+
+										BFS();
+
+										nMap[nRow3][nCol3] = 0;
+									}
+								}
+							}
+
+
+
+
+							nMap[nRow2][nCol2] = 0;
+						}
+					}
+				}
+
+
+				nMap[nRow1][nCol1] = 0;
+			}
+		}
+	}
+
+	cout << nAnswer << "\n";
+
+	return 0; 
+}
