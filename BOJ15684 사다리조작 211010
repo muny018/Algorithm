@@ -1,0 +1,119 @@
+//BOJ15684 사다리조작 211010
+
+//문제
+//https://www.acmicpc.net/problem/15684
+
+//해설
+//https://j2wooooo.tistory.com/67
+
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int nMap[33][13] = { 0 };
+int N, M, H;
+int nVecSize;
+int nAnswer = -1;
+vector <pair<int, int>> Vec;
+bool Flag = false;
+
+bool Simulation()
+{
+	int nRow, nCol;
+	for (int j = 1; j <= N; j++)
+	{
+		nRow = 1, nCol = j;
+		for (int i = 1; i <= H; i++)
+		{
+			if (nMap[nRow][nCol] > 0)
+			{
+				nCol = nMap[nRow][nCol];
+			}
+
+			if (nRow == H && nCol != j) return false;
+
+			nRow++;
+		}
+	}
+
+	Flag = true;
+
+	return true;
+}
+
+void DepthFisrtSearch(int nCurLadderNum, int nTargetNum, int nIdx)
+{
+	if (nCurLadderNum == nTargetNum)
+	{
+		Simulation();
+		if (Flag == true)
+		{
+			nAnswer = nTargetNum;
+		}
+		return;
+	}
+
+	int nRow, nCol;
+
+	if (nIdx >= nVecSize) return;
+	for (int i = nIdx; i < nVecSize; i++)
+	{
+		nRow = Vec[i].first;
+		nCol = Vec[i].second;
+
+		
+		if (nMap[nRow][nCol] == 0 && nMap[nRow][nCol + 1] == 0 )
+		{
+			nMap[nRow][nCol] = nCol + 1;
+			nMap[nRow][nCol + 1] = nCol;
+			DepthFisrtSearch(nCurLadderNum + 1, nTargetNum, i+1);
+			nMap[nRow][nCol] = 0;
+			nMap[nRow][nCol + 1] = 0;
+		}
+
+		if (Flag) return;
+	}
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+	cin >> N >> M >> H;
+
+	int a, b;
+	for (int i = 0; i < M; i++)
+	{
+		cin >> a >> b;
+		nMap[a][b] = b + 1;
+		nMap[a][b + 1] = b;
+	}
+
+	for (int i = 1; i <= H; i++)
+	{
+		for (int j = 1; j <= N-1; j++)
+		{
+			if (nMap[i][j] == 0)
+			{
+				Vec.push_back(make_pair(i, j));
+			}
+		}
+	}
+	nVecSize = Vec.size();
+
+	for (int i = 0; i <= 3; i++)
+	{
+		if (Flag == false)
+		{
+			DepthFisrtSearch(0, i, 0);
+		}
+		
+	}
+
+	cout << nAnswer << "\n";
+
+	return 0;
+}
