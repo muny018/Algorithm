@@ -1,0 +1,193 @@
+//BOJ14500 테트로미노 211011
+
+//문제
+//https://www.acmicpc.net/problem/14500
+
+//해설
+//
+
+#define _CRT_SECURE_NO_WARNINGS
+#define MAX 502
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int nMap[MAX][MAX] = { 0 };
+int nAnswer = 0;
+bool bVisited[MAX][MAX] = { false };
+int N, M;
+vector <pair<int, int>> Vec;
+int dy[] = { -1,0,1,0 };
+int dx[] = { 0,1,0,-1 };
+
+void Calc()
+{
+	int nNum = 0;
+	int nCount = 0;
+	/*
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			if (bVisited[i][j] == true)
+			{
+				nNum += nMap[i][j];
+				nCount++;
+			}
+
+			if (nCount >= 4) break;
+		}
+	}
+	*/
+
+	int nVecSize = Vec.size();
+
+	for (int i = 0; i < nVecSize; i++)
+	{
+		int nRow = Vec[i].first;
+		int nCol = Vec[i].second;
+		nNum += nMap[nRow][nCol];
+	}
+
+	if (nAnswer < nNum)
+	{
+		nAnswer = nNum;	
+	}
+
+
+}
+
+void DepthFisrtSearch(int nRow, int nCol, int nCount)
+{
+	if (nCount >= 4)
+	{
+		Calc();
+		return;
+	}
+
+	int nNextRow, nNextCol; 
+
+	for (int i = 0; i < 4; i++)
+	{
+		nNextRow = nRow + dy[i];
+		nNextCol = nCol + dx[i];
+		
+		if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= M) continue;
+		if (bVisited[nNextRow][nNextCol] == true) continue;
+
+		bVisited[nNextRow][nNextCol] = true;
+		Vec.push_back(make_pair(nNextRow, nNextCol));
+		DepthFisrtSearch(nNextRow, nNextCol, nCount + 1);
+		Vec.pop_back();
+		bVisited[nNextRow][nNextCol] = false;
+	}
+
+}
+
+void Init()
+{
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			bVisited[i][j] = false;
+		}
+	}
+	
+}
+
+void CheckTStyle(int nRow, int nCol)
+{
+	int nSum = nMap[nRow][nCol];
+	int nNum;
+	int nCount = 0;
+
+	int nNextRow, nNextCol;
+
+	for (int i = 0; i < 4; i++)
+	{
+		nNextRow = nRow + dy[i];
+		nNextCol = nCol + dx[i];
+
+		if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= M) continue;
+		
+		nSum += nMap[nNextRow][nNextCol];
+		nCount++;
+	}
+
+	if (nCount <= 2) return;
+	else if (nCount == 3)
+	{
+		nNum = nSum;
+
+		if (nNum > nAnswer)
+		{
+			nAnswer = nNum;
+		}
+	}
+	else if (nCount == 4)
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			nNextRow = nRow + dy[i];
+			nNextCol = nCol + dx[i];
+
+			if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= M) continue;
+
+			nNum = nSum - nMap[nNextRow][nNextCol];
+
+			if (nNum > nAnswer)
+			{
+				nAnswer = nNum;
+			}
+		}
+	}
+
+
+
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+	cin >> N >> M; 
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			cin >> nMap[i][j];
+		}
+	}
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			if (i == 4 && j == 8)
+			{
+				int Stop = 0;
+			}
+
+			//Init();
+			Vec.clear();
+
+			bVisited[i][j] = true;
+			Vec.push_back(make_pair(i, j));
+			DepthFisrtSearch(i, j, 1);
+			Vec.pop_back();
+			bVisited[i][j] = false;
+
+			//T모형 검증
+			CheckTStyle(i, j);
+		}
+	}
+	
+
+	cout << nAnswer << "\n";
+
+	return 0;
+}
