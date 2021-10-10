@@ -1,0 +1,57 @@
+//BOJ13458 시험감독 211011
+
+//문제
+//https://www.acmicpc.net/problem/13458
+
+//해설
+// 
+
+#define _CRT_SECURE_NO_WARNINGS
+#define MAX 1000001
+
+#include <iostream>
+using namespace std;
+
+int nMap[MAX] = { 0 };
+int N, A, B;
+long long nAnswer = 0;
+
+void Solve()
+{
+	int nStudent;
+	for (int i = 0; i < N; i++)
+	{
+		nStudent = nMap[i];
+
+		nStudent = nStudent - A;
+		if (nStudent <= 0) nAnswer++; 
+		else if (nStudent > 0)
+		{
+			nAnswer++;
+			if (nStudent % B == 0) nAnswer += (nStudent / B);
+			else nAnswer += (nStudent / B) + 1;
+			
+		}
+	}
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin); 
+#endif
+	cin >> N;
+
+	for (int i = 0; i < N; i++)
+	{
+		cin >> nMap[i];
+	}
+
+	cin >> A >> B;
+
+	Solve();
+	
+	cout << nAnswer << "\n";
+
+	return 0;
+}
