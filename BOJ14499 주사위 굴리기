@@ -1,0 +1,127 @@
+//BOJ14499 주사위 굴리기
+
+//문제
+//https://www.acmicpc.net/problem/14499
+
+//해설
+//https://yabmoons.tistory.com/36
+//https://rebas.kr/784
+
+#define _CRT_SECURE_NO_WARNINGS
+#define MAX 21
+
+#include <iostream>
+#include <vector>
+using namespace std;
+int N, M, K;
+int nMap[MAX][MAX] = { 0 };
+int Dice[8] = { 0 };
+int nStartRow, nStartCol;
+int nAnswer = 0;
+vector <int> OrderVec;
+int dy[] = { 0,0,0,-1,1 }; //1: 동쪽  2: 서쪽  3:북쪽  4: 남쪽
+int dx[] = { 0,1,-1,0,0 };
+
+void CheckNum(int nOrder)
+{
+	int d1 = Dice[1];
+	int d2 = Dice[2];
+	int d3 = Dice[3];
+	int d4 = Dice[4];
+	int d5 = Dice[5];
+	int d6 = Dice[6];
+
+	if (nOrder == 1) //동쪽
+	{
+		Dice[1] = d4;
+		Dice[4] = d6;
+		Dice[6] = d3;
+		Dice[3] = d1;
+	}
+	else if (nOrder == 2) //서쪽
+	{
+		Dice[1] = d3;
+		Dice[3] = d6;
+		Dice[6] = d4;
+		Dice[4] = d1;
+	}
+	else if (nOrder == 3) //남쪽
+	{
+		Dice[1] = d2;
+		Dice[2] = d6;
+		Dice[6] = d5;
+		Dice[5] = d1;
+	}
+	else if (nOrder == 4) //북쪽
+	{
+		Dice[1] = d5;
+		Dice[5] = d6;
+		Dice[6] = d2;
+		Dice[2] = d1;
+	}
+}
+
+void Solve()
+{
+	int nOrder;
+	int nCurRow, nCurCol, nNextRow, nNextCol;
+
+	nCurRow = nStartRow;
+	nCurCol = nStartCol;
+
+	for (int i = 0; i < K; i++)
+	{
+		nOrder = OrderVec[i];
+
+		nNextRow = nCurRow + dy[nOrder];
+		nNextCol = nCurCol + dx[nOrder];
+
+		if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= M) continue;
+
+		CheckNum(nOrder);
+
+		nCurRow = nNextRow;
+		nCurCol = nNextCol;
+
+		if (nMap[nNextRow][nNextCol] == 0)
+		{
+			nMap[nNextRow][nNextCol] = Dice[6];
+		}
+		else
+		{
+			Dice[6] = nMap[nNextRow][nNextCol];
+			nMap[nNextRow][nNextCol] = 0; 
+		}
+
+		cout << Dice[1] << "\n";
+	}
+
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+	cin >> N >> M >> nStartRow >> nStartCol >> K;
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			cin >> nMap[i][j];
+		}
+	}
+
+	int Input;
+	for (int i = 0; i < K; i++)
+	{
+		cin >> Input;
+		OrderVec.push_back(Input);
+	}
+
+	Solve();
+
+
+	return 0;
+}
