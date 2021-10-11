@@ -1,0 +1,237 @@
+//BOJ12100 2048(easy) 211011
+
+//문제
+//https://www.acmicpc.net/problem/12100
+
+//해설
+//https://www.acmicpc.net/board/view/61812
+
+#define _CRT_SECURE_NO_WARNINGS
+#define MAX 22
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int nMap[MAX][MAX] = { 0 };
+int nCopyMap[MAX][MAX] = { 0 };
+int nDir[7] = { 0 };
+int N;
+int nAnswer = 0;
+int nProc[MAX] = { 0 };
+
+// 1 : 북쪽, 2 : 동쪽,  3: 남쪽,  4: 서쪽
+
+void Sequence()
+{
+	vector <int> OutPutVec;
+	bool bVisited[MAX] = { false };
+	vector <int> InputVec;
+	for (int i = 0; i < N; i++)
+	{
+		if (nProc[i] != 0)
+		{
+			InputVec.push_back(nProc[i]);
+		}
+		nProc[i] = 0;
+	}
+
+	/*
+	for (int i = 0; i < N; i++)
+	{
+		if (nCopyProc[i] == 0) continue;
+		
+		if (i <=N-2 && nCopyProc[i] == nCopyProc[i + 1] && !bVisited[i] && !bVisited[i+1])
+		{
+			Vec.push_back(nCopyProc[i] * 2);
+			bVisited[i] = true;
+			bVisited[i + 1] = true;
+		}
+		else if (bVisited[i] == false)
+		{
+			Vec.push_back(nCopyProc[i]);
+		}
+	}
+	*/
+	int nInputVecSize = InputVec.size();
+
+	for (int i = 0; i < nInputVecSize; i++)
+	{
+		if (i <= nInputVecSize - 2 && InputVec[i] == InputVec[i + 1] && !bVisited[i] && !bVisited[i + 1])
+		{
+			OutPutVec.push_back(InputVec[i] * 2);
+			bVisited[i] = true;
+			bVisited[i + 1] = true;
+		}
+		else if (bVisited[i] == false)
+		{
+			OutPutVec.push_back(InputVec[i]);
+		}
+	}
+
+
+
+	int nOutVecSize = OutPutVec.size();
+
+	for (int i = 0; i < nOutVecSize; i++)
+	{
+		nProc[i] = OutPutVec[i];
+	}
+
+
+}
+
+void Calc()
+{
+	int nOrder;
+	int Pos;
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			 nMap[i][j] = nCopyMap[i][j];
+		}
+	}
+
+	for (int nIdx = 1; nIdx <= 5; nIdx++)
+	{
+		nOrder = nDir[nIdx];
+
+		if (nOrder == 1) //북쪽
+		{
+			for (int j = 0; j < N; j++)
+			{
+				for (int i = 0; i < N; i++)
+				{
+					nProc[i] = nMap[i][j];
+				}
+
+				Sequence();
+
+				for (int i = 0; i < N; i++)
+				{
+					nMap[i][j] = nProc[i];
+				}
+			}
+		}
+		else if (nOrder == 2) //동쪽
+		{
+			for (int i = 0; i < N; i++)
+			{
+				Pos = 0;
+				for (int j = N - 1; j >= 0; j--)
+				{
+					nProc[Pos] = nMap[i][j];
+					Pos++;
+				}
+
+				Sequence();
+
+				Pos = 0;
+				for (int j = N - 1; j >= 0; j--)
+				{
+					nMap[i][j] = nProc[Pos];
+					Pos++;
+				}
+			}
+
+
+		}
+		else if (nOrder == 3) //남쪽
+		{
+			for (int j = 0; j < N; j++)
+			{
+				Pos = 0;
+				for (int i = N-1; i >= 0; i--)
+				{
+					nProc[Pos] = nMap[i][j];
+					Pos++;
+				}
+
+				Sequence();
+
+				Pos = 0;
+				for (int i = N - 1; i >= 0; i--)
+				{
+					nMap[i][j] = nProc[Pos];
+					Pos++;
+				}
+			}
+		}
+		else if (nOrder == 4) //서쪽
+		{
+			for (int i = 0; i < N; i++)
+			{
+				for (int j = 0; j < N; j++)
+				{
+					nProc[j] = nMap[i][j];
+				}
+
+				Sequence();
+
+				for (int j = 0; j < N; j++)
+				{
+					nMap[i][j] = nProc[j];
+				}
+			}
+		}
+	}
+
+	int nCount = 0;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			if (nMap[i][j] > nCount)
+			{
+				nCount = nMap[i][j];
+			}
+		}
+	}
+
+	if (nAnswer < nCount)
+	{
+		nAnswer = nCount;
+	}
+
+}
+
+void DepthFirstSearch(int nIdx, int nCount)
+{
+	if (nCount >= 5)
+	{
+		Calc();
+		return;
+	}
+
+	if (nIdx > 5) return;
+
+	for (int i = 1; i <= 4; i++)
+	{
+		nDir[nIdx] = i;
+		DepthFirstSearch(nIdx + 1, nCount + 1);
+		nDir[nIdx] = 0;
+	}
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+	cin >> N;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			cin >> nCopyMap[i][j];
+		}
+	}
+
+	DepthFirstSearch(1,0);
+
+	cout << nAnswer << "\n";
+	
+	return 0;
+}
