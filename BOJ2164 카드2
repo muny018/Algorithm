@@ -1,0 +1,54 @@
+//BOJ2164 카드2
+
+//문제
+//https://www.acmicpc.net/problem/2164
+
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <iostream>
+#include <queue>
+using namespace std; 
+
+int N;
+int nAnswer;
+
+int main()
+{
+	cin >> N;
+
+	queue <int> Que;
+
+	for (int i = 1; i <= N; i++)
+	{
+		Que.push(i);
+	}
+
+	int nQueSize = 0;
+	int nFront;
+	while (true)
+	{
+		nQueSize = Que.size();
+		if (nQueSize == 1)
+		{
+			nAnswer = Que.front();
+			break;
+		}
+		else if (nQueSize >= 2)
+		{
+			//맨 앞장 버리기
+			Que.pop();
+
+			//뒤로보내기
+			nFront = Que.front();
+			Que.pop();
+			Que.push(nFront);	
+		}
+
+
+	}
+
+	cout << nAnswer << "\n";
+
+
+	return 0;
+}
