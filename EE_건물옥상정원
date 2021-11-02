@@ -1,0 +1,49 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int N;
+int H[80010] = { 0 };
+vector <int> Vec;
+long long nAnswer = 0;
+
+void Solve()
+{
+	int Idx = 0;
+	int nVecSize;
+
+	for (int i = 0; i < N; i++)
+	{
+		nVecSize = Vec.size();
+		for (int j = nVecSize - 1; j >= 0; j--)
+		{
+			if (H[i] < Vec[j])
+			{
+				nAnswer += j+1;
+				break;
+			}
+
+			Vec.pop_back();
+		}
+
+		Vec.push_back(H[i]);
+		int stop_a = 0;
+	}
+}
+
+int main()
+{
+	freopen("input.txt", "r", stdin);
+	cin >> N;
+	for (int i = 0; i < N; i++)
+	{
+		cin >> H[i];
+	}
+
+	Solve();
+
+	cout << nAnswer << "\n";
+
+	return 0;
+}
