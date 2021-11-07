@@ -1,0 +1,65 @@
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <iostream>
+#include <queue>
+using namespace std;
+
+int N;
+char cMap[101][101];
+int nVisited[101][101] = { false };
+int nAnswer = 99999999;
+int dy[] = { -1,0,1,0 }; //북동남서
+int dx[] = { 0,1,0,-1 };
+
+void BreadthFirstSearch()
+{
+	queue <pair<int, int>> Que;
+	Que.push(make_pair(0, 0));
+	
+	int nCurRow, nCurCol, nNextRow, nNextCol;
+	while (!Que.empty())
+	{
+		nCurRow = Que.front().first;
+		nCurCol = Que.front().second;
+		Que.pop();
+
+		for (int idx = 0; idx < 4; idx++)
+		{
+			nNextRow = nCurRow + dy[idx];
+			nNextCol = nCurCol + dx[idx];
+			if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= N) continue;
+			if (nVisited[nNextRow][nNextCol] > nVisited[nCurRow][nCurCol] + cMap[nNextRow][nNextCol] - '0')
+			{
+				nVisited[nNextRow][nNextCol] = nVisited[nCurRow][nCurCol] + cMap[nNextRow][nNextCol] - '0';
+				Que.push(make_pair(nNextRow, nNextCol));
+			}
+		}
+
+	}
+
+}
+
+int main()
+{
+//	freopen("input.txt", "r", stdin);
+	cin >> N;
+	for (int i = 0; i < N; i++)
+	{
+		cin >> cMap[i];	
+	}
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			nVisited[i][j] = 99999999;
+		}
+	}
+	nVisited[0][0] = 0;
+
+	BreadthFirstSearch();
+
+	cout << nVisited[N-1][N-1] << "\n";
+
+	return 0;
+}
