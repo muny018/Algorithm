@@ -1,0 +1,130 @@
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <iostream>
+#include <queue>
+#include <vector>
+#include <cstring>
+using namespace std;
+
+int N, M;
+int nMap[51][51] = { 0 };
+bool bVisited[51][51] = { false };
+int nAnswer = 9999999;
+int dy[] = { -1,0,1,0 };
+int dx[] = { 0,1,0,-1 };
+vector <pair<int, int>> Vec;
+
+void BFS(int nRow, int nCol)
+{
+	bool bCopyVisited[51][51];
+	memcpy(bCopyVisited, bVisited, sizeof(bVisited));
+
+	queue <pair<int, int>> Que;
+	Que.push(make_pair(nRow, nCol));
+
+	int nNextRow, nNextCol, nCurRow, nCurCol;
+	int nQueSize = 0;
+	int nDistance = 0;
+	while (!Que.empty())
+	{
+		nQueSize = Que.size();
+		nDistance++;
+		for (int nTime = 0; nTime < nQueSize; nTime++)
+		{
+			nCurRow = Que.front().first;
+			nCurCol = Que.front().second;
+			Que.pop();
+
+			for (int i = 0; i < 4; i++)
+			{
+				nNextRow = nCurRow + dy[i];
+				nNextCol = nCurCol + dx[i];
+				if (nNextRow >= N || nNextRow < 0 || nNextCol < 0 || nNextCol >= M) continue;
+				if (bCopyVisited[nNextRow][nNextCol] == true) continue;
+				if (nMap[nNextRow][nNextCol] == 0)
+				{
+					Que.push(make_pair(nNextRow, nNextCol));
+					bCopyVisited[nNextRow][nNextCol] = true;
+				}
+				else if (nMap[nNextRow][nNextCol] == 1)
+				{
+					if (nAnswer > nDistance-1) nAnswer = nDistance-1;
+
+					return;
+				}
+			}
+		}
+	}
+}
+
+bool InternalBFS(int nRow, int nCol)
+{
+	nMap[nRow][nCol] = 2;
+	bVisited[nRow][nCol] = true;
+
+	queue <pair<int, int>> Que;
+	Que.push(make_pair(nRow, nCol));
+	Vec.push_back(make_pair(nRow, nCol));
+	
+	int nNextRow, nNextCol, nCurRow, nCurCol;
+	while (!Que.empty())
+	{
+		nCurRow = Que.front().first;
+		nCurCol = Que.front().second;
+		Que.pop();
+
+		for (int i = 0; i < 4; i++)
+		{
+			nNextRow = nCurRow + dy[i];
+			nNextCol = nCurCol + dx[i];
+			if (nNextRow >= N || nNextRow < 0 || nNextCol < 0 || nNextCol >= M) continue;
+			if (nMap[nNextRow][nNextCol] == 1 && bVisited[nNextRow][nNextCol] == false)
+			{
+				nMap[nNextRow][nNextCol] = 2;
+				bVisited[nNextRow][nNextCol] = true;
+				Que.push(make_pair(nNextRow, nNextCol));
+				Vec.push_back(make_pair(nNextRow, nNextCol));
+			}
+		}
+
+	}
+
+	return true;
+}
+
+int main()
+{
+	freopen("input.txt", "r", stdin);
+
+	cin >> N >> M;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			cin >> nMap[i][j];
+		}
+	}
+
+	//첫번째 생산단지 발견
+	bool Flag = false;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			if (Flag == true) break;
+			if (nMap[i][j] == 0) continue;
+			Flag = InternalBFS(i, j);
+		}
+	}
+
+	//두번째 생산단지 최소값 발견
+	int nVecSize = Vec.size();
+	for (int i = 0; i < nVecSize; i++)
+	{
+		BFS(Vec[i].first, Vec[i].second);
+	}
+
+	cout << nAnswer << "\n";
+
+	return 0; 
+}
