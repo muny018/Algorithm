@@ -1,0 +1,72 @@
+#define _CRT_SECURE_NO_WARNINGS
+#define MAX 102
+
+#include <queue>
+#include <iostream>
+using namespace std;
+int nMap[MAX][MAX] = { 0 };
+int N, M;
+int nAnswer = 99999999;
+
+int BFS(int nNum)
+{
+	queue <pair<int, int>> Que;
+	Que.push(make_pair(nNum, 0));
+	int nProcMap[MAX] = { 0 };
+
+	int nCurNum, nNextNum, nCurSum, nNextSum;
+	while (!Que.empty())
+	{
+		nCurNum = Que.front().first;
+		nCurSum = Que.front().second;
+		Que.pop();
+
+		for (int i = 1; i <= N; i++)
+		{
+			if (nNum == i) continue;
+			if (nMap[nCurNum][i] > 0)
+			{
+				nNextSum = nCurSum + nMap[nCurNum][i];
+				
+				if (nNextSum <= nProcMap[i] || nProcMap[i]== 0)
+				{
+					nProcMap[i] = nNextSum;
+					Que.push(make_pair(i, nNextSum));
+				}
+			}
+		}
+	}
+
+	int nMax = 0;
+	for (int i = 1; i <= N; i++)
+	{
+		if (nMax < nProcMap[i]) nMax = nProcMap[i];
+	}
+
+	return nMax;
+}
+
+int main()
+{
+	freopen("input.txt", "r", stdin);
+	cin >> N >> M;
+
+	int a, b, Num;
+	for (int i = 0; i < M; i++)
+	{
+		cin >> a >> b >> Num;
+		nMap[a][b] = Num;
+		nMap[b][a] = Num;
+	}
+
+	int nMaxNum = 0;
+	for (int i = 1; i <= N; i++)
+	{
+		nMaxNum = BFS(i);
+		if (nMaxNum < nAnswer) nAnswer = nMaxNum;
+	}
+
+	cout << nAnswer << "\n";
+
+	return 0;
+}
