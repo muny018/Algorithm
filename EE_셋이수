@@ -1,0 +1,111 @@
+#include <iostream>
+using namespace std;
+
+int N; // 자연수의 개수
+int X[50 + 10]; // 자연수들을 저장
+int sol; // 정답
+
+void InputData(void) {
+	int i;
+	cin >> N;
+	for (i = 0; i < N; i++) {
+		cin >> X[i];
+	}
+}
+
+void OutputData(void) {
+	cout << sol;
+}
+
+// 자연수 num을 분리하여 만든 2자리 수들을 arr에 저장
+int SepNum(int num, int *arr) {
+	int cnt = 0;
+	while (num >= 100) {
+		int temp = num % 1000;
+		if(temp >= 100) arr[cnt++] = temp;
+		num /= 10;
+	}
+	return cnt;
+}
+
+// 자연수 2개의 2자리 수들을 비교하여 둘이수인지 판별
+int CompNum(int *a, int a_cnt, int *b, int b_cnt, int *c, int c_cnt) {
+	int i, j, k;
+	//cout << a_cnt << " " << b_cnt << " " << c_cnt << "\n"; 
+	for (i = 0; i < a_cnt; i++) {
+		for (j = 0; j < b_cnt; j++) {
+			for (k = 0; k < c_cnt; k++) {
+				
+				/*
+				if( i == 0 && j==1 && k==0)
+				{
+					cout << a[i] << " " <<  b[j] << " " << c[k] << "\n";
+				}
+				*/
+				if (a[i] == b[j] && b[j] == c[k]) return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+void Solve(void) {
+	int A[10 + 10]; // 어떤 자연수를 분리하여 만든 2자리 수들을 저장
+	int A_cnt; // 배열 A에 저장된 2자리 수들의 개수
+	int B[10 + 10]; // 어떤 자연수를 분리하여 만든 2자리 수들을 저장
+	int B_cnt; // 배열 B에 저장된 2자리 수들의 개수
+	int i, j, k;
+	int C[10 + 10];
+	int C_cnt;
+
+	// N개의 자연수에서 중복없이 2개를 골라 처리
+	for (i = 0; i < N - 2; i++) {
+		A_cnt = SepNum(X[i], A);
+		for (j = i + 1; j < N-1; j++) {
+			B_cnt = SepNum(X[j], B);
+			for( k= j+1; k < N; k++)
+			{
+				C_cnt = SepNum(X[k], C);
+				
+				/*
+				if( i == 0 && j == 1 && k ==3)
+				{
+				
+						cout << A_cnt << " " << B_cnt << " " << C_cnt << "\n"; 
+					
+						int ii, jj, kk;
+						for (ii = 0; ii < A_cnt; ii++) {
+							cout << A[ii] << " ";
+						}
+						cout << "\n";
+						for (jj = 0; jj < B_cnt; jj++) {
+							cout << B[jj] << " ";
+						}
+						cout << "\n";
+						for (kk = 0; kk < C_cnt; kk++) {
+							cout << C[kk] << " ";
+						}
+						cout << "\n";
+				}
+				*/
+				
+				if (CompNum(A, A_cnt, B, B_cnt, C, C_cnt) == 1) sol++;
+				
+				
+				
+				
+				
+			}	
+		}
+	}
+}
+
+int main(void) {
+	InputData(); // 입력
+
+	Solve(); // 문제 해결
+
+	OutputData(); // 출력
+
+	return 0;
+}
