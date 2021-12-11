@@ -1,0 +1,63 @@
+#include <iostream>
+using namespace std;
+
+int N;//철근수
+int M;//납품할 철근 길이
+int L[1000000 + 10];//철근들의 길이
+int R;//최소길이
+int MaxLength = 0;
+int nAnswer = -1;
+
+int Cutting (int nIndex)
+{
+	int nCut = 0;
+	int nResult = 0;
+	for( int i = 0; i < N; i++)
+	{
+		nCut = L[i] - nIndex;
+		if( nCut >= R)
+		{
+			nResult += nCut;
+		}
+	}
+	
+	if(nResult >= M) return nResult;
+	else return -1;
+	
+}
+
+void Solve()
+{
+	int Ans;
+	for( int i = MaxLength; i >= 0; i--)
+	{
+		Ans = Cutting(i);
+		if( Ans > 0) 
+		{
+			nAnswer = i;
+			return;
+		}
+	}
+}
+
+void InputData() {
+	int i;
+	cin >> N >> M >> R;
+	for (i = 0; i < N; i++) {
+		cin >> L[i];
+		if ( L[i] > MaxLength) MaxLength = L[i];
+	}
+}
+
+
+int main() {
+	InputData();//입력 함수
+
+	//코드를 작성하세요
+	Solve();
+
+	//출력
+	cout << nAnswer;
+	return 0;
+}
+
