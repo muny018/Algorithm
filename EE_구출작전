@@ -1,0 +1,96 @@
+#include <iostream>
+#include <vector> 
+#include <queue>
+#include <algorithm>
+using namespace std;
+
+typedef struct
+{
+	int x;
+	int y;
+
+}POS;
+POS pos[100 + 10];//위치정보
+
+int T;//테스트케이스 수
+bool ans;
+int N;//보급지점 수
+POS Start;
+POS End;
+vector <POS> Vec;
+int dist(POS A, POS B){
+	
+	int distance = 0;
+	
+	distance = abs(A.x - B.x) + abs(A.y - B.y);
+	
+	return distance;
+	
+}
+
+bool BFS()
+{
+	bool bVisited[200] ={ false};
+	queue <POS> Que;
+	Que.push(Start);
+	int nVecSize = Vec.size();
+	
+	POS CurPos, NextPos;
+	while( !Que.empty())
+	{
+		CurPos = Que.front();
+		Que.pop();
+		
+		if( dist(CurPos, End) <= 1000 ) return true;
+		
+		for( int i= 0; i< nVecSize; i++)
+		{
+				if(bVisited[i] == true) continue;
+				NextPos = Vec[i];
+				if( dist(CurPos, NextPos) <= 1000 )
+				{
+					bVisited[i] = true;
+					Que.push(NextPos);
+				}
+		}
+	}
+	
+	return false;
+}
+
+void InputData(void)
+{
+	cin >> N;
+	for (int i = 0; i < N + 2; i++)//0번 베이스캠프, 1~N번 보급지점, N+1번 극지연구소
+	{
+		cin >> pos[i].x >> pos[i].y;
+	}
+	
+	Start.x = pos[0].x; Start.y = pos[0].y;
+	End.x = pos[N + 1].x; End.y = pos[N + 1].y;
+	
+	Vec.clear();
+	for (int i = 1; i <= N; i++)
+	{
+		Vec.push_back(pos[i]);
+	}
+}
+
+
+
+int main(void)
+{
+	cin >> T;
+	for (int t = 0; t < T; t++)
+	{
+		InputData();//입력 함수
+
+		//코드를 작성하세요
+		ans =	BFS();
+
+		//출력
+		if (ans) cout << "success" << "\n";
+		else cout << "fail" << "\n";
+	}
+	return 0;
+}
