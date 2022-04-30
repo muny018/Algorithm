@@ -1,0 +1,168 @@
+//BOJ21610 마법사 상어와 비바라기 220430
+
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int nMap[51][51] = { 0 };
+bool bVisited[51][51] = { 0 };
+int N, M;
+vector <pair<int, int>> vOrder;
+vector < pair<int, int>> vCloud;
+int nAnsnwer = 0;
+int dy[] = { 0,-1,-1,-1,0,1,1,1 };
+int dx[] = { -1,-1,0,1,1,1,0,-1 };
+
+void Make_Cloud()
+{
+	vCloud.clear();
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			if (bVisited[i][j] == true) continue;
+
+			if (nMap[i][j] >= 2)
+			{
+				vCloud.push_back(make_pair(i, j));
+				nMap[i][j] -= 2;
+			}
+		}
+	}
+}
+
+void CheckDiagonalCloud()
+{
+	int nCount = 0;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			nCount = 0;
+			if (bVisited[i][j] == true)
+			{
+				//좌상
+				if (i - 1 >= 0 && j - 1 >= 0 && nMap[i - 1][j - 1] > 0)
+					nCount++;
+				//우상
+				if (i - 1 >= 0 && j + 1 < N && nMap[i - 1][j + 1] > 0)
+					nCount++;
+
+				//좌하
+				if (i + 1 < N && j - 1 >= 0 && nMap[i + 1][j - 1] > 0)
+					nCount++;
+
+				//우하
+				if (i + 1 < N && j + 1 < N && nMap[i + 1][j + 1] > 0)
+					nCount++;
+			}
+			nMap[i][j] += nCount;
+		}
+	}
+
+}
+
+void MoveCloud(int nTime)
+{
+	int nVecSize = vCloud.size();
+	int nDir = vOrder[nTime].first;
+	int nMove = vOrder[nTime].second;
+	int nCurRow, nCurCol, nNextRow, nNextCol;
+	int nMoveCount = 0;
+
+	for (int i = 0; i < nVecSize; i++)
+	{
+		nCurRow = vCloud[i].first;
+		nCurCol = vCloud[i].second;
+
+		nMoveCount = nMove;
+		nNextRow = nCurRow;
+		nNextCol = nCurCol;
+
+		while (nMoveCount--)
+		{
+			nNextRow = nNextRow + dy[nDir];
+			if (nNextRow < 0) nNextRow = N - 1;
+			else if (nNextRow >= N) nNextRow = 0;
+
+			nNextCol = nNextCol + dx[nDir];
+			if (nNextCol < 0) nNextCol = N - 1;
+			else if (nNextCol >= N) nNextCol = 0;
+		}
+		
+		nMap[nNextRow][nNextCol] += 1;
+		bVisited[nNextRow][nNextCol] = true;
+	}
+
+}
+
+void Init()
+{
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			bVisited[i][j] = false;
+		}
+	}
+}
+
+void Solve()
+{
+	for (int nTime = 0; nTime < M; nTime++)
+	{
+		Init();
+		MoveCloud(nTime);
+		CheckDiagonalCloud();
+		Make_Cloud();
+	}
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			if (nMap[i][j] > 0)
+			{
+				nAnsnwer += nMap[i][j];
+			}
+		
+		}
+	}
+
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+	cin >> N >> M;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			cin >> nMap[i][j];
+		}
+	}
+	
+	vOrder.clear();
+	for (int i = 0; i < M; i++)
+	{
+		int nDir, nSpeed;
+		cin >> nDir >> nSpeed;
+		vOrder.push_back(make_pair(nDir - 1, nSpeed));
+	}
+
+	vCloud.push_back(make_pair(N - 1, 0));
+	vCloud.push_back(make_pair(N - 1, 1));
+	vCloud.push_back(make_pair(N - 2, 0));
+	vCloud.push_back(make_pair(N - 2, 1));
+
+	Solve();
+
+	cout << nAnsnwer << "\n";
+
+	return 0;
+}
