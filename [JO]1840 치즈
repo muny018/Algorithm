@@ -1,0 +1,103 @@
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <iostream>
+#include <queue>
+using namespace std;
+
+int nAnsTime = 0;
+int nAnsCnt = 0;
+int Cnt = 0;
+int N, M;
+int nMap[101][101] = { 0 };
+int nCopyMap[101][101] = { 0 };
+bool bVisited[101][101] = { 0 };
+int dx[] = { -1,0,1,0 };
+int dy[] = { 0,-1,0,1 };
+
+bool BreadthFirstSearch(int nRow, int nCol)
+{
+	bool bDiscover = false;
+	queue <pair<int, int>> Que;
+	Que.push(make_pair(nRow, nCol));
+
+	int nNextRow, nNextCol, nCurRow, nCurCol;
+	while (!Que.empty())
+	{
+		nCurRow = Que.front().first;
+		nCurCol = Que.front().second;
+		Que.pop();
+		
+		for (int idx = 0; idx < 4; idx++)
+		{
+			nNextRow = nCurRow + dy[idx];
+			nNextCol = nCurCol + dx[idx]; 
+			if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= M) continue;
+			if (bVisited[nNextRow][nNextCol] == true) continue;
+			
+			if (nCopyMap[nNextRow][nNextCol] == 0)
+			{
+				bVisited[nNextRow][nNextCol] = true;
+				Que.push(make_pair(nNextRow, nNextCol));
+			}
+			else
+			{
+				bDiscover = true;
+				bVisited[nNextRow][nNextCol] = true;
+				nMap[nNextRow][nNextCol] = 0;
+				nAnsCnt++;
+			}
+		}
+	}
+
+
+	return bDiscover;
+}
+
+void Init()
+{
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			bVisited[i][j] = false; 
+			nCopyMap[i][j] = nMap[i][j];
+		}
+	}
+	
+}
+
+void Solve()
+{
+	while (true)
+	{
+		Init();
+		
+		if (BreadthFirstSearch(0, 0) == false) return;
+
+		nAnsTime++;
+		Cnt = nAnsCnt;
+		nAnsCnt = 0;
+	}
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+	cin >> N >> M;
+	
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			cin >> nMap[i][j];
+		}
+	}
+
+	Solve();
+
+	cout << nAnsTime << "\n" << Cnt << "\n";
+	
+	return 0;
+}
