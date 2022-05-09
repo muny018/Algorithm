@@ -1,0 +1,58 @@
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <iostream>
+using namespace std; 
+
+int N;
+int nMap[14][14] = { 0 };
+int nSelected[14] = { 0 };
+bool bVisited[14] = { 0 };
+int nAnswer = 99999999;
+
+void DepthFirstSearch(int nIndex, int nNum, int nSum)
+{
+	if (nSum > nAnswer) return;
+
+	if (nIndex >= N-1 && nMap[nNum][1] !=0)
+	{
+		nSum += nMap[nNum][1];
+		if (nAnswer > nSum)
+		{
+			nAnswer = nSum;
+			int test = 0;
+		}
+		return;
+	}
+
+	
+	for (int i = 1; i <= N; i++)
+	{
+		if (i == nNum || bVisited[i] == true || nMap[nNum][i] ==0) continue;
+		bVisited[i] = true;
+		DepthFirstSearch(nIndex + 1, i, nSum + nMap[nNum][i]);
+		bVisited[i] = false;
+	}
+}
+
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif 
+	cin >> N;
+	for (int i = 1; i <= N; i++)
+	{
+		for (int j = 1; j <= N; j++)
+		{
+			cin >> nMap[i][j];
+		}
+	}
+
+	bVisited[1] = true;
+	DepthFirstSearch(0, 1,0);
+
+	cout << nAnswer << "\n";
+
+	return 0;
+}
