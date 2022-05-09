@@ -1,0 +1,95 @@
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+int N;
+int nMap[26][26] = { 0 };
+bool bVisited[26][26] = { false };
+int nCount[1000] = { 0 };
+int nCnt = 0;
+int dx[] = { -1,0,1,0 };
+int dy[] = { 0,-1,0,1 };
+
+void DepthFirstSearch(int nRow, int nCol, int nCnt)
+{
+	int nNextRow, nNextCol;
+	for (int i = 0; i < 4; i++)
+	{
+		nNextRow = nRow + dy[i];
+		nNextCol = nCol + dx[i];
+		if (nNextRow < 0 || nNextRow >= N || nNextCol < 0 || nNextCol >= N) continue;
+		if (nMap[nNextRow][nNextCol] != 0 && bVisited[nNextRow][nNextCol] == false)
+		{
+			bVisited[nNextRow][nNextCol] = true;
+			nMap[nNextRow][nNextCol] = nCnt;
+			DepthFirstSearch(nNextRow, nNextCol, nCnt);
+		}
+	}
+}
+
+void Solve()
+{
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			if (nMap[i][j] == 0 || bVisited[i][j] == true) continue;
+
+			nCnt++;
+			bVisited[i][j] = true;
+			nMap[i][j] = nCnt;
+			DepthFirstSearch(i, j, nCnt);
+			
+		}
+	}
+
+	int nValue = 0;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			if (nMap[i][j] == 0) continue;
+			nValue = nMap[i][j];
+			nCount[nValue]++;
+		}
+	}
+
+	vector <int> Vec;
+	for (int i = 1; i <= nCnt; i++)
+	{
+		Vec.push_back(nCount[i]);
+	}
+
+	sort(Vec.begin(), Vec.end());
+
+	int nVecSize = Vec.size();
+	cout << nCnt << "\n";
+
+	for (int i = 0; i < nVecSize; i++)
+	{
+		cout << Vec[i] << "\n";
+	}
+
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif
+	cin >> N; 
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			scanf("%1d", &nMap[i][j]);
+		}
+	}
+
+	Solve();
+
+	return 0;
+}
