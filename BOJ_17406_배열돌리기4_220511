@@ -1,0 +1,164 @@
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int N, M, K;
+int nInputMap[51][51] = { 0 };
+int nMap[51][51] = { 0 };
+int nCopyMap[51][51] = { 0 };
+
+struct Info
+{
+	int r;
+	int c;
+	int s;
+};
+
+vector <Info> Vec;
+int nAnswer = 9999999;
+int nSelected[52] = { 0 };
+bool bVisited[52] = { false };
+
+void Rotate(int nRow, int nCol, int s)
+{
+	int x1, y1, x2, y2;
+
+	y2 = nRow + s;
+	x2 = nCol + s;
+
+	y1 = nRow - s;
+	x1 = nCol - s;
+
+	//상
+	for (int i = x1 + 1; i <= x2; i++)
+	{
+		nCopyMap[y1][i] = nMap[y1][i - 1];
+	}
+
+	//하
+	for (int i = x2 - 1; i >= x1; i--)
+	{
+		nCopyMap[y2][i] = nMap[y2][i + 1];
+	}
+
+	//좌
+	for (int i = y2 - 1; i >= y1; i--)
+	{
+		nCopyMap[i][x1] = nMap[i + 1][x1];
+	}
+
+	//우
+	for (int i = y1 + 1; i <= y2; i++)
+	{
+		nCopyMap[i][x2] = nMap[i - 1][x2];
+	}
+
+	int nValue = s - 1;
+	if (nValue > 0) Rotate(nRow, nCol, nValue);
+}
+
+void Calc()
+{
+	int nSelectValue;
+	Info vSelectInfo;
+
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			nMap[i][j] = nInputMap[i][j];
+		}
+	}
+
+	
+	for (int i = 0; i < K; i++)
+	{
+		nSelectValue = nSelected[i] - 1;
+		vSelectInfo = Vec[nSelectValue];
+
+
+		for (int i = 0; i < N; i++)
+		{
+			for (int j = 0; j < M; j++)
+			{
+				nCopyMap[i][j] = nMap[i][j];
+			}
+		}
+
+		Rotate(vSelectInfo.r, vSelectInfo.c, vSelectInfo.s);
+
+		for (int i = 0; i < N; i++)
+		{
+			for (int j = 0; j < M; j++)
+			{
+				nMap[i][j] = nCopyMap[i][j];
+			}
+		}
+		int test = 0;
+	}
+
+	int nSum = 0;
+	for (int i = 0; i < N; i++)
+	{
+		nSum = 0;
+		for (int j = 0; j < M; j++)
+		{
+			nSum += nMap[i][j];
+		}
+		if (nAnswer > nSum) nAnswer = nSum;
+	}
+
+
+}
+
+void DepthFirstSearch(int nIndex)
+{
+	if (nIndex >= K)
+	{
+		Calc();
+		return;
+	}
+
+	for (int i = 1; i <= K; i++)
+	{
+		if (bVisited[i] == true) continue;
+		bVisited[i] = true;
+		nSelected[nIndex] = i;
+		DepthFirstSearch(nIndex + 1);
+		nSelected[nIndex] = 0;
+		bVisited[i] = false;
+	}
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif 
+	Info Input;
+	cin >> N >> M >> K;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			cin >> nInputMap[i][j];
+		}
+	}
+	
+	for (int i = 0; i < K; i++)
+	{
+		cin >> Input.r >> Input.c >> Input.s;
+		Input.r--;
+		Input.c--;
+		Vec.push_back(Input);
+	}
+
+	DepthFirstSearch(0);
+
+	cout << nAnswer << "\n";
+
+	return 0;
+}
