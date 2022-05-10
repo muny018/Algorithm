@@ -1,0 +1,105 @@
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <iostream>
+using namespace std;
+
+int N, M, R;
+int nMap[301][301] = { 0 };
+int nCopyMap[301][301] = { 0 };
+int nCount = 0;
+
+void Rotate(int nCnt)
+{
+	int x1, y1, x2, y2;
+	y2 = N - nCnt;
+	x2 = M - nCnt;
+	
+	y1 = nCnt - 1;
+	x1 = nCnt - 1;
+	
+
+	//상
+	for (int i = x2-1; i >= x1; i--)
+	{
+		nCopyMap[y1][i] = nMap[y1][i + 1];
+	}
+
+	//좌
+	for (int i = y1 + 1; i <= y2; i++)
+	{
+		nCopyMap[i][x1] = nMap[i-1][x1];
+	}
+
+
+	//하
+	for (int i = x1+1; i <= x2; i++)
+	{
+		nCopyMap[y2][i] = nMap[y2][i - 1];
+	}
+
+	//우
+	for (int i = y2 - 1; i >= y1; i--)
+	{
+		nCopyMap[i][x2] = nMap[i + 1][x2];
+	}
+
+	if (nCount > nCnt) Rotate(nCnt + 1);
+
+}
+
+int main()
+{
+#ifdef _DEBUG
+	freopen("input.txt", "r", stdin);
+#endif 
+	cin >> N >> M >> R;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			cin >> nMap[i][j];
+		}
+	}
+
+	if (min(N, M) % 2 == 1) //홀수
+	{
+		nCount = min(N, M) / 2 + 1;
+	}
+	else if (min(N, M) % 2 == 0) //짝수
+	{
+		nCount = min(N, M) / 2;
+	}
+
+	for (int i = 0; i < R; i++)
+	{
+		for (int i = 0; i < N; i++)
+		{
+			for (int j = 0; j < M; j++)
+			{
+				nCopyMap[i][j] = 0;
+			}
+		}
+
+		Rotate(1);
+
+		for (int i = 0; i < N; i++)
+		{
+			for (int j = 0; j < M; j++)
+			{
+				nMap[i][j] = nCopyMap[i][j];
+			}
+		}
+	}
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			cout << nMap[i][j] << " ";
+		}
+		cout << "\n";
+	}
+
+
+	return 0;
+}
